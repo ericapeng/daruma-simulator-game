@@ -116,7 +116,30 @@ void _check_gl_error(const char *file, int line);
 ///
 #define check_gl_error() _check_gl_error(__FILE__,__LINE__)
 
-//ALL CODE BENEATH THIS LINE IS FROM libigl
+//convert eigen matrix to dynamic array to bind the uniform
+void update_pointer(float* M_p, Eigen::MatrixXf M);
+
+class MeshObject
+{
+public:
+    MeshObject(Eigen::MatrixXf V,
+               Eigen::MatrixXf TC,
+               Eigen::MatrixXf N,
+               Eigen::MatrixXf F,
+               Eigen::MatrixXf FTC,
+               Eigen::MatrixXf FN);
+    
+    Eigen::MatrixXf V;
+    Eigen::MatrixXf TC;
+    Eigen::MatrixXf N;
+    Eigen::MatrixXf F;
+    Eigen::MatrixXf FTC;
+    Eigen::MatrixXf FN;
+    VertexBufferObject* VBO;
+private:
+};
+
+//ALL CODE BENEATH THIS LINE IS ADAPTED FROM libigl
 #define IGL_INLINE inline
 namespace igl
 {
@@ -125,7 +148,7 @@ namespace igl
     
     template <typename Scalar, typename Index>
     bool readOBJ(
-                            const std::string obj_file_name,
+                            const std::string obj_file_name, int pass,
                             std::vector<std::vector<Scalar > > & V,
                             std::vector<std::vector<Scalar > > & TC,
                             std::vector<std::vector<Scalar > > & N,
@@ -135,7 +158,7 @@ namespace igl
     
     template <typename DerivedV, typename DerivedF, typename DerivedT>
     bool readOBJ(
-                            const std::string str,
+                            const std::string str, int pass,
                             Eigen::PlainObjectBase<DerivedV>& V,
                             Eigen::PlainObjectBase<DerivedT>& TC,
                             Eigen::PlainObjectBase<DerivedV>& CN,

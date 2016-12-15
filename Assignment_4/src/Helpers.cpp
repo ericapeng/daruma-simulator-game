@@ -201,11 +201,35 @@ void _check_gl_error(const char *file, int line)
 
 
 
-////////////////////////////////////////////////////////////
+void update_pointer(float* M_p, Eigen::MatrixXf M){
+    for(int i = 0; i < 4; i++){
+        M_p[i] = M.col(i).x();
+        M_p[i+4] = M.col(i).y();
+        M_p[i+8] = M.col(i).z();
+        M_p[i+12] = M.col(i).w();
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//ALL CODE BENEATH THIS LINE IS FROM libigl
+//MESHOBJECTS IMPLEMENTED METHODS
 //
-////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : V(V), TC(TC), N(N), F(F), FTC(FTC), FN(FN)
+{
+    VBO = new VertexBufferObject();
+    VBO->init();
+    VBO->update(V);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//ALL CODE BENEATH THIS LINE IS ADAPTED FROM libigl
+//
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename TestClass>
 bool igl::test(TestClass obj) {
@@ -215,7 +239,7 @@ bool igl::test(TestClass obj) {
 #define IGL_INLINE inline
 template <typename Scalar, typename Index>
 bool igl::readOBJ(
-                             const std::string obj_file_name,
+                             const std::string obj_file_name, int pass,
                              std::vector<std::vector<Scalar > > & V,
                              std::vector<std::vector<Scalar > > & TC,
                              std::vector<std::vector<Scalar > > & N,
@@ -253,6 +277,9 @@ bool igl::readOBJ(
 #  define IGL_LINE_MAX 2048
 #endif
     
+    int currPass = -1;
+    std::string lastType = f;
+    
     char line[IGL_LINE_MAX];
     int line_no = 1;
     while (fgets(line, IGL_LINE_MAX, obj_file) != NULL)
@@ -262,154 +289,166 @@ bool igl::readOBJ(
         // Read first word containing type
         if(sscanf(line, "%s",type) == 1)
         {
-            // Get pointer to rest of line right after type
-            char * l = &line[strlen(type)];
-            if(type == v)
+            if(type == v && lastType == f)
             {
-                double x[4];
-                int count =
-                sscanf(l,"%lf %lf %lf %lf\n",&x[0],&x[1],&x[2],&x[3]);
-                if(count != 3 && count != 4)
-                {
-                    fprintf(stderr,
-                            "Error: readOBJ() vertex on line %d should have 3 or 4 coordinates",
-                            line_no);
-                    fclose(obj_file);
-                    return false;
-                }
-                std::vector<Scalar > vertex(count);
-                for(int i = 0;i<count;i++)
-                {
-                    vertex[i] = x[i];
-                }
-                V.push_back(vertex);
-            }else if(type == vn)
+                currPass++;
+                lastType = v;
+            }
+            if(type == f && lastType == v)
             {
-                double x[3];
-                int count =
-                sscanf(l,"%lf %lf %lf\n",&x[0],&x[1],&x[2]);
-                if(count != 3)
+                lastType = f;
+            }
+            
+            if(currPass == pass){
+                // Get pointer to rest of line right after type
+                char * l = &line[strlen(type)];
+                if(type == v)
                 {
-                    fprintf(stderr,
-                            "Error: readOBJ() normal on line %d should have 3 coordinates",
-                            line_no);
-                    fclose(obj_file);
-                    return false;
-                }
-                std::vector<Scalar > normal(count);
-                for(int i = 0;i<count;i++)
-                {
-                    normal[i] = x[i];
-                }
-                N.push_back(normal);
-            }else if(type == vt)
-            {
-                double x[3];
-                int count =
-                sscanf(l,"%lf %lf %lf\n",&x[0],&x[1],&x[2]);
-                if(count != 2 && count != 3)
-                {
-                    fprintf(stderr,
-                            "Error: readOBJ() texture coords on line %d should have 2 "
-                            "or 3 coordinates (%d)",
-                            line_no,count);
-                    fclose(obj_file);
-                    return false;
-                }
-                std::vector<Scalar > tex(count);
-                for(int i = 0;i<count;i++)
-                {
-                    tex[i] = x[i];
-                }
-                TC.push_back(tex);
-            }else if(type == f)
-            {
-                const auto & shift = [&V](const int i)->int
-                {
-                    return i<0 ? i+V.size() : i-1;
-                };
-                const auto & shift_t = [&TC](const int i)->int
-                {
-                    return i<0 ? i+TC.size() : i-1;
-                };
-                const auto & shift_n = [&N](const int i)->int
-                {
-                    return i<0 ? i+N.size() : i-1;
-                };
-                std::vector<Index > f;
-                std::vector<Index > ftc;
-                std::vector<Index > fn;
-                
-                // Read each "word" after type
-                char word[IGL_LINE_MAX];
-                int offset;
-                while(sscanf(l,"%s%n",word,&offset) == 1)
-                {
-                    
-                    // adjust offset
-                    l += offset;
-                    
-                    // Process word
-                    long int i,it,in;
-                    if(sscanf(word,"%ld/%ld/%ld",&i,&it,&in) == 3)
-                    {
-                        f.push_back(shift(i));
-                        ftc.push_back(shift_t(it));
-                        fn.push_back(shift_n(in));
-                    }else if(sscanf(word,"%ld/%ld",&i,&it) == 2)
-                    {
-                        f.push_back(shift(i));
-                        ftc.push_back(shift_t(it));
-                    }else if(sscanf(word,"%ld//%ld",&i,&in) == 2)
-                    {
-                        f.push_back(shift(i));
-                        fn.push_back(shift_n(in));
-                    }else if(sscanf(word,"%ld",&i) == 1)
-                    {
-                        f.push_back(shift(i));
-                    }else
+                    double x[4];
+                    int count =
+                    sscanf(l,"%lf %lf %lf %lf\n",&x[0],&x[1],&x[2],&x[3]);
+                    if(count != 3 && count != 4)
                     {
                         fprintf(stderr,
-                                "Error: readOBJ() face on line %d has invalid element format\n",
+                                "Error: readOBJ() vertex on line %d should have 3 or 4 coordinates",
                                 line_no);
                         fclose(obj_file);
                         return false;
                     }
-                }
-                if(
-                   (f.size()>0 && fn.size() == 0 && ftc.size() == 0) ||
-                   (f.size()>0 && fn.size() == f.size() && ftc.size() == 0) ||
-                   (f.size()>0 && fn.size() == 0 && ftc.size() == f.size()) ||
-                   (f.size()>0 && fn.size() == f.size() && ftc.size() == f.size()))
+                    std::vector<Scalar > vertex(count);
+                    for(int i = 0;i<count;i++)
+                    {
+                        vertex[i] = x[i];
+                    }
+                    V.push_back(vertex);
+                }else if(type == vn)
                 {
+                    double x[3];
+                    int count =
+                    sscanf(l,"%lf %lf %lf\n",&x[0],&x[1],&x[2]);
+                    if(count != 3)
+                    {
+                        fprintf(stderr,
+                                "Error: readOBJ() normal on line %d should have 3 coordinates",
+                                line_no);
+                        fclose(obj_file);
+                        return false;
+                    }
+                    std::vector<Scalar > normal(count);
+                    for(int i = 0;i<count;i++)
+                    {
+                        normal[i] = x[i];
+                    }
+                    N.push_back(normal);
+                }else if(type == vt)
+                {
+                    double x[3];
+                    int count =
+                    sscanf(l,"%lf %lf %lf\n",&x[0],&x[1],&x[2]);
+                    if(count != 2 && count != 3)
+                    {
+                        fprintf(stderr,
+                                "Error: readOBJ() texture coords on line %d should have 2 "
+                                "or 3 coordinates (%d)",
+                                line_no,count);
+                        fclose(obj_file);
+                        return false;
+                    }
+                    std::vector<Scalar > tex(count);
+                    for(int i = 0;i<count;i++)
+                    {
+                        tex[i] = x[i];
+                    }
+                    TC.push_back(tex);
+                }else if(type == f)
+                {
+                    const auto & shift = [&V](const int i)->int
+                    {
+                        return i<0 ? i+V.size() : i-1;
+                    };
+                    const auto & shift_t = [&TC](const int i)->int
+                    {
+                        return i<0 ? i+TC.size() : i-1;
+                    };
+                    const auto & shift_n = [&N](const int i)->int
+                    {
+                        return i<0 ? i+N.size() : i-1;
+                    };
+                    std::vector<Index > f;
+                    std::vector<Index > ftc;
+                    std::vector<Index > fn;
                     
-                    // No matter what add each type to lists so that lists are the
-                    // correct lengths
-                    F.push_back(f);
-                    FTC.push_back(ftc);
-                    FN.push_back(fn);
+                    // Read each "word" after type
+                    char word[IGL_LINE_MAX];
+                    int offset;
+                    while(sscanf(l,"%s%n",word,&offset) == 1)
+                    {
+                        
+                        // adjust offset
+                        l += offset;
+                        
+                        // Process word
+                        long int i,it,in;
+                        if(sscanf(word,"%ld/%ld/%ld",&i,&it,&in) == 3)
+                        {
+                            f.push_back(shift(i));
+                            ftc.push_back(shift_t(it));
+                            fn.push_back(shift_n(in));
+                        }else if(sscanf(word,"%ld/%ld",&i,&it) == 2)
+                        {
+                            f.push_back(shift(i));
+                            ftc.push_back(shift_t(it));
+                        }else if(sscanf(word,"%ld//%ld",&i,&in) == 2)
+                        {
+                            f.push_back(shift(i));
+                            fn.push_back(shift_n(in));
+                        }else if(sscanf(word,"%ld",&i) == 1)
+                        {
+                            f.push_back(shift(i));
+                        }else
+                        {
+                            fprintf(stderr,
+                                    "Error: readOBJ() face on line %d has invalid element format\n",
+                                    line_no);
+                            fclose(obj_file);
+                            return false;
+                        }
+                    }
+                    if(
+                       (f.size()>0 && fn.size() == 0 && ftc.size() == 0) ||
+                       (f.size()>0 && fn.size() == f.size() && ftc.size() == 0) ||
+                       (f.size()>0 && fn.size() == 0 && ftc.size() == f.size()) ||
+                       (f.size()>0 && fn.size() == f.size() && ftc.size() == f.size()))
+                    {
+                        
+                        // No matter what add each type to lists so that lists are the
+                        // correct lengths
+                        F.push_back(f);
+                        FTC.push_back(ftc);
+                        FN.push_back(fn);
+                    }else
+                    {
+                        fprintf(stderr,
+                                "Error: readOBJ() face on line %d has invalid format\n", line_no);
+                        fclose(obj_file);
+                        return false;
+                    }
+                }else if(strlen(type) >= 1 && (type[0] == '#' ||
+                                               type[0] == 'g'  ||
+                                               type[0] == 's'  ||
+                                               strcmp("usemtl",type)==0 ||
+                                               strcmp("mtllib",type)==0))
+                {
+                    //ignore comments or other shit
                 }else
                 {
+                    //ignore any other lines
                     fprintf(stderr,
-                            "Error: readOBJ() face on line %d has invalid format\n", line_no);
-                    fclose(obj_file);
-                    return false;
+                            "Warning: readOBJ() ignored non-comment line %d:\n  %s",
+                            line_no,
+                            line);
                 }
-            }else if(strlen(type) >= 1 && (type[0] == '#' ||
-                                           type[0] == 'g'  ||
-                                           type[0] == 's'  ||
-                                           strcmp("usemtl",type)==0 ||
-                                           strcmp("mtllib",type)==0))
-            {
-                //ignore comments or other shit
-            }else
-            {
-                //ignore any other lines
-                fprintf(stderr,
-                        "Warning: readOBJ() ignored non-comment line %d:\n  %s",
-                        line_no,
-                        line);
-      }
+            }
     }else
     {
       // ignore empty line
@@ -426,7 +465,7 @@ bool igl::readOBJ(
 
 template <typename DerivedV, typename DerivedF, typename DerivedT>
 bool igl::readOBJ(
-                             const std::string str,
+                             const std::string str, int pass,
                              Eigen::PlainObjectBase<DerivedV>& V,
                              Eigen::PlainObjectBase<DerivedT>& TC,
                              Eigen::PlainObjectBase<DerivedV>& CN,
@@ -436,7 +475,7 @@ bool igl::readOBJ(
 {
     std::vector<std::vector<double> > vV,vTC,vN;
     std::vector<std::vector<int> > vF,vFTC,vFN;
-    bool success = igl::readOBJ(str,vV,vTC,vN,vF,vFTC,vFN);
+    bool success = igl::readOBJ(str, pass, vV,vTC,vN,vF,vFTC,vFN);
     if(!success)
     {
         // readOBJ(str,vV,vTC,vN,vF,vFTC,vFN) should have already printed an error
@@ -579,7 +618,7 @@ IGL_INLINE int igl::max_size(const std::vector<T> & V)
 
 //template bool igl::test<std::string>(std::string obj);
 template bool igl::test<char const*>(char const*);
-template bool igl::readOBJ<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
+template bool igl::readOBJ<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, int, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
 
 
 

@@ -16,33 +16,16 @@
 #include <vector>
 
 // VertexBufferObject wrapper
-VertexBufferObject VBO;
+Program program;
 
-// Contains the vertex positions
-Eigen::MatrixXf V(2,3);
-Eigen::MatrixXf TC;
-Eigen::MatrixXf N;
-Eigen::MatrixXf F;
-Eigen::MatrixXf FTC;
-Eigen::MatrixXf FN;
+std::vector<MeshObject*> meshObjects;
 
-//Eigen::MatrixXf view_A(4,4);
 float* view_A_pointer = new float[16];
-
-//convert eigen matrix to dynamic array to bind the uniform
-void update_pointer(float* M_p, Eigen::MatrixXf M){
-    for(int i = 0; i < 4; i++){
-        M_p[i] = M.col(i).x();
-        M_p[i+4] = M.col(i).y();
-        M_p[i+8] = M.col(i).z();
-        M_p[i+12] = M.col(i).w();
-    }
-}
 
 class ViewTransformations
 {
 public:
-    ViewTransformations(GLFWwindow* window, Program* program) : window(window), program(program), view_A(4,4), cam_A(4,4), window_A(4,4){
+    ViewTransformations(GLFWwindow* window) : window(window), view_A(4,4), cam_A(4,4), window_A(4,4){
         view_A.setIdentity(4,4);
         cam_A.setIdentity(4,4);
         window_A.setIdentity(4,4);
@@ -51,12 +34,12 @@ public:
         cam_A *= 1.0/2;
     }
     void updateView(int code = -1) {
-        //zoom in
+        //zoom out
         if(code == 0){
             cam_A *= 0.8;
         }
         
-        //zoom out
+        //zoom in
         else if(code == 1){
             cam_A *= 1.2;
         }
@@ -77,17 +60,29 @@ private:
     void setView() {
         view_A = window_A * cam_A;
         update_pointer(view_A_pointer, view_A);
-        glUniformMatrix4fv(program->uniform("view"), 1, true, view_A_pointer);
+        glUniformMatrix4fv(program.uniform("view"), 1, true, view_A_pointer);
     }
     
     GLFWwindow* window;
-    Program* program;
     Eigen::MatrixXf view_A;
     Eigen::MatrixXf cam_A;
     Eigen::MatrixXf window_A;
 };
 
 ViewTransformations* viewTrans;
+
+void drawMeshObjects(){
+    for(MeshObject* object : meshObjects){
+        // The vertex shader wants the position of the vertices as an input.
+        // The following line connects the VBO we defined above with the position "slot"
+        // in the vertex shader
+        program.bindVertexAttribArray("position",*(object->VBO));
+        //glUniformMatrix4fv(program.uniform("MModel"), 1, true, object->T_pointer);
+        for(int i = 0; i < object->F.cols(); i++)
+            //if you're having depth conflicts, try GL_TRIANGLE_STRIP
+            glDrawArrays(GL_LINE_LOOP, i*4, 4);
+    }
+}
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -104,11 +99,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     double yworld = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
 
     // Update the position of the first vertex if the left button is pressed
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-        V.col(0) << xworld, yworld;
+    /*if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        V.col(0) << xworld, yworld;*/
 
     // Upload the change to the GPU
-    VBO.update(V);
+    //VBO.update(V);
 }
 
 int shift_on = 0;
@@ -133,20 +128,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 viewTrans->updateView(0);
             break;
         case  GLFW_KEY_1:
-            V.col(0) << -0.5,  0.5;
+            //V.col(0) << -0.5,  0.5;
             break;
         case GLFW_KEY_2:
-            V.col(0) << 0,  0.5;
+            //V.col(0) << 0,  0.5;
             break;
         case  GLFW_KEY_3:
-            V.col(0) << 0.5,  0.5;
+            //V.col(0) << 0.5,  0.5;
             break;
         default:
             break;
     }
 
     // Upload the change to the GPU
-    VBO.update(V);
+    //VBO.update(V);
 }
 
 int main(void)
@@ -193,27 +188,18 @@ int main(void)
 
     // Initialize the VBO with the vertices data
     // A VBO is a data container that lives in the GPU memory
-    VBO.init();
+    /*VBO.init();
 
-    V.resize(3,4);
+    V.resize(3,4);*/
     /*V << 0,  0.5, -0.5, 0,
     0.5, -0.5, -0.5, 0.5,
     0, 0, 0, 0;*/
-    V << 0.5, 0.5, -0.5, -0.5,
+    /*V << 0.5, 0.5, -0.5, -0.5,
     0.5, -0.5, 0.5, -0.5,
     0, 0, 0, 0;
-    VBO.update(V);
+    VBO.update(V);*/
     
     igl::test("SUCCESS ");
-    
-    /*std::vector<std::vector<double>> V;
-    std::vector<std::vector<double>> TC;
-    std::vector<std::vector<double>> N;
-    std::vector<std::vector<int>> F;
-    std::vector<std::vector<int>> FTC;
-    std::vector<std::vector<int>> FN;
-    igl::readOBJ("../data/darumaotoshi_obj/darumaotoshi_obj.obj", V, TC, N, F, FTC, FN);
-    std::cout << V.size() << "\n";*/
     
     Eigen::Matrix<double, -1, -1, 0, -1, -1> VM;
     Eigen::Matrix<double, -1, -1, 0, -1, -1> TCM;
@@ -221,32 +207,20 @@ int main(void)
     Eigen::Matrix<int, -1, -1, 0, -1, -1> FM;
     Eigen::Matrix<int, -1, -1, 0, -1, -1> FTCM;
     Eigen::Matrix<int, -1, -1, 0, -1, -1> FNM;
-    igl::readOBJ("../data/darumaotoshi_obj/darumaotoshi_obj.obj", VM, TCM, NM, FM, FTCM, FNM);
-    V = VM.transpose().cast<float>();
-    TC = TCM.transpose().cast<float>();
-    N = NM.transpose().cast<float>();
-    F = FM.transpose().cast<float>();
-    FTC = FTCM.transpose().cast<float>();
-    FN = FNM.transpose().cast<float>();
-    
-    //std::cout << FM;
-    
-    Eigen::MatrixXf VFinal(3, F.cols()*4);
-    int computedI = 0;
-    for(int i = 0; i < F.cols(); i++) {
-        computedI = i*4;
-        VFinal.col(computedI) << V.col(F(0,i));
-        VFinal.col(computedI+1) << V.col(F(1,i));
-        VFinal.col(computedI+2) << V.col(F(2,i));
-        VFinal.col(computedI+3) << V.col(F(3,i));
+    for(int i = 0; i < 7; i++){
+        igl::readOBJ("../data/darumaotoshi_obj/darumaotoshi_obj.obj", i, VM, TCM, NM, FM, FTCM, FNM);
+        meshObjects.push_back(new MeshObject(
+                                             VM.transpose().cast<float>(),
+                                             TCM.transpose().cast<float>(),
+                                             NM.transpose().cast<float>(),
+                                             FM.transpose().cast<float>(),
+                                             FTCM.transpose().cast<float>(),
+                                             FNM.transpose().cast<float>()));
     }
-    
-    VBO.update(VFinal);
 
     // Initialize the OpenGL Program
     // A program controls the OpenGL pipeline and it must contains
     // at least a vertex shader and a fragment shader to be valid
-    Program program;
     const GLchar* vertex_shader =
             "#version 150 core\n"
                     "in vec3 position;"
@@ -273,11 +247,6 @@ int main(void)
     program.init(vertex_shader,fragment_shader,"outColor");
     program.bind();
 
-    // The vertex shader wants the position of the vertices as an input.
-    // The following line connects the VBO we defined above with the position "slot"
-    // in the vertex shader
-    program.bindVertexAttribArray("position",VBO);
-
     // Save the current time --- it will be used to dynamically change the triangle color
     auto t_start = std::chrono::high_resolution_clock::now();
 
@@ -287,12 +256,7 @@ int main(void)
     // Register the mouse callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     
-    /*view_A.setIdentity(4,4);
-    view_A *= 1.0/2;
-    std::cout << view_A << "\n";
-    update_pointer(view_A_pointer, view_A);
-    glUniformMatrix4fv(program.uniform("view"), 1, false, view_A_pointer);*/
-    viewTrans = new ViewTransformations(window, &program);
+    viewTrans = new ViewTransformations(window);
     viewTrans->updateView();
 
     // Loop until the user closes the window
@@ -314,12 +278,8 @@ int main(void)
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        // Draw a triangle
-        //glDrawArrays(GL_TRIANGLES, 0, 4);
-        for(int i = 0; i < F.cols(); i++)
-            glDrawArrays(GL_LINE_LOOP, i*4, 4);
-            //glDrawArrays(GL_TRIANGLE_STRIP, i*4, 4);
+        
+        drawMeshObjects();
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
@@ -331,7 +291,11 @@ int main(void)
     // Deallocate opengl memory
     program.free();
     VAO.free();
-    VBO.free();
+    //VBO.free();
+    
+    for(MeshObject* mo : meshObjects)
+        delete mo;
+    meshObjects.clear();
 
     // Deallocate glfw internals
     glfwTerminate();
