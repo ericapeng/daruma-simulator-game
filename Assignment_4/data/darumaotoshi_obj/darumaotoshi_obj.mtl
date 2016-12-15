@@ -1,0 +1,104 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# çÏê¨ÇµÇΩÉtÉ@ÉCÉã : 28.07.2016 13:29:31
+
+newmtl Material__46
+	Ns 49.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.1451 0.6039 0.2314
+	Kd 0.1451 0.6039 0.2314
+	Ks 0.5940 0.5940 0.5940
+	Ke 0.0000 0.0000 0.0000
+	map_bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+	bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+
+newmtl Material__48
+	Ns 49.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.6784 0.6784 0.6784
+	Kd 0.6784 0.6784 0.6784
+	Ks 0.5940 0.5940 0.5940
+	Ke 0.0000 0.0000 0.0000
+	map_Ka C:\user\fujimori\model_ts\fin\wa\darumaotoshi\atama_d.jpg
+	map_Kd C:\user\fujimori\model_ts\fin\wa\darumaotoshi\atama_d.jpg
+	map_bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+	bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+
+newmtl Material__43
+	Ns 49.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 1.0000 0.5608 0.9647
+	Kd 1.0000 0.5608 0.9647
+	Ks 0.5940 0.5940 0.5940
+	Ke 0.0000 0.0000 0.0000
+	map_bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+	bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+
+newmtl Material__45
+	Ns 49.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 1.0000 0.9922 0.3412
+	Kd 1.0000 0.9922 0.3412
+	Ks 0.5940 0.5940 0.5940
+	Ke 0.0000 0.0000 0.0000
+	map_bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+	bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+
+newmtl Material__44
+	Ns 49.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.8902 0.0784 0.0784
+	Kd 0.8902 0.0784 0.0784
+	Ks 0.5940 0.5940 0.5940
+	Ke 0.0000 0.0000 0.0000
+	map_bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+	bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+
+newmtl Material__41
+	Ns 49.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.3412 0.8667 1.0000
+	Kd 0.3412 0.8667 1.0000
+	Ks 0.5940 0.5940 0.5940
+	Ke 0.0000 0.0000 0.0000
+	map_bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+	bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+
+newmtl Material__47
+	Ns 49.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.8824 0.8392 0.6392
+	Kd 0.8824 0.8392 0.6392
+	Ks 0.5940 0.5940 0.5940
+	Ke 0.0000 0.0000 0.0000
+	map_Ka C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_c.JPG
+	map_Kd C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_c.JPG
+	map_bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG
+	bump C:\user\fujimori\model_ts\fin\wa\darumaotoshi\hammer_b.JPG

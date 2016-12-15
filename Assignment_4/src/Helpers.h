@@ -116,4 +116,45 @@ void _check_gl_error(const char *file, int line);
 ///
 #define check_gl_error() _check_gl_error(__FILE__,__LINE__)
 
+//ALL CODE BENEATH THIS LINE IS FROM libigl
+#define IGL_INLINE inline
+namespace igl
+{
+    template <typename TestClass>
+    bool test(TestClass obj);
+    
+    template <typename Scalar, typename Index>
+    bool readOBJ(
+                            const std::string obj_file_name,
+                            std::vector<std::vector<Scalar > > & V,
+                            std::vector<std::vector<Scalar > > & TC,
+                            std::vector<std::vector<Scalar > > & N,
+                            std::vector<std::vector<Index > > & F,
+                            std::vector<std::vector<Index > > & FTC,
+                            std::vector<std::vector<Index > > & FN);
+    
+    template <typename DerivedV, typename DerivedF, typename DerivedT>
+    bool readOBJ(
+                            const std::string str,
+                            Eigen::PlainObjectBase<DerivedV>& V,
+                            Eigen::PlainObjectBase<DerivedT>& TC,
+                            Eigen::PlainObjectBase<DerivedV>& CN,
+                            Eigen::PlainObjectBase<DerivedF>& F,
+                            Eigen::PlainObjectBase<DerivedF>& FTC,
+                            Eigen::PlainObjectBase<DerivedF>& FN);
+
+    template <typename T, typename Derived>
+    IGL_INLINE bool list_to_matrix(
+                                   const std::vector<std::vector<T > > & V,
+                                   Eigen::PlainObjectBase<Derived>& M);
+    
+    template <typename T>
+    IGL_INLINE int min_size(const std::vector<T> & V);
+
+    template <typename T>
+    IGL_INLINE int max_size(const std::vector<T> & V);
+
+}
+
+
 #endif
