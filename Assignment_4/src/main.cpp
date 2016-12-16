@@ -77,11 +77,24 @@ void drawMeshObjects(){
         // The following line connects the VBO we defined above with the position "slot"
         // in the vertex shader
         program.bindVertexAttribArray("position",*(object->VBO));
+        //program.bindVertexAttribArray("texcoord",*(object->TCBO));
+        glUniform1i(program.uniform("textured"),object->textured);
         //glUniformMatrix4fv(program.uniform("MModel"), 1, true, object->T_pointer);
-        for(int i = 0; i < object->F.cols(); i++)
-            //if you're having depth conflicts, try GL_TRIANGLE_STRIP
-            glDrawArrays(GL_LINE_LOOP, i*4, 4);
+        for(int i = 0; i < object->VFull.cols(); i+=3)
+            glDrawArrays(GL_LINE_LOOP, i, 3);
     }
+    /*int objectToDraw = 0;
+    program.bindVertexAttribArray("position",*(meshObjects[objectToDraw]->VBO));
+    glUniform1i(program.uniform("textured"),meshObjects[objectToDraw]->textured);
+    glDrawArrays(GL_TRIANGLES, 0, meshObjects[objectToDraw]->VFull.cols());*/
+    /*Eigen::MatrixXf triangle(3,3);
+    for(int i = 0; i < meshObjects[objectToDraw]->VFull.cols(); i+=3){
+        triangle.col(0) << meshObjects[objectToDraw]->VFull.col(i);
+        triangle.col(1) << meshObjects[objectToDraw]->VFull.col(i+1);
+        triangle.col(2) << meshObjects[objectToDraw]->VFull.col(i+2);
+        //std::cout << "\n" << triangle << "\n";
+        glDrawArrays(GL_LINE_LOOP, i, 3);
+    }*/
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -199,8 +212,6 @@ int main(void)
     0, 0, 0, 0;
     VBO.update(V);*/
     
-    igl::test("SUCCESS ");
-    
     Eigen::Matrix<double, -1, -1, 0, -1, -1> VM;
     Eigen::Matrix<double, -1, -1, 0, -1, -1> TCM;
     Eigen::Matrix<double, -1, -1, 0, -1, -1> NM;
@@ -217,6 +228,55 @@ int main(void)
                                              FTCM.transpose().cast<float>(),
                                              FNM.transpose().cast<float>()));
     }
+    /*igl::readOBJ("../data/cube.obj", 0, VM, TCM, NM, FM, FTCM, FNM);
+    meshObjects.push_back(new MeshObject(
+                                         VM.transpose().cast<float>(),
+                                         TCM.transpose().cast<float>(),
+                                         NM.transpose().cast<float>(),
+                                         FM.transpose().cast<float>(),
+                                         FTCM.transpose().cast<float>(),
+                                         FNM.transpose().cast<float>()));*/
+    
+    //set textures
+    /*std::vector<std::string> textureFiles;
+    textureFiles.push_back("../data/darumaotoshi_obj/atama_d.jpg");
+    textureFiles.push_back("../data/darumaotoshi_obj/hammer_c.JPG");
+    std::vector<int> glTextures;
+    glTextures.push_back(GL_TEXTURE0);
+    glTextures.push_back(GL_TEXTURE1);
+    
+    GLuint textures[textureFiles.size()];
+    glGenTextures(textureFiles.size(), textures);
+    int width, height; unsigned char* image;
+    for(size_t i = 5; i < meshObjects.size(); i++){
+        //UM, ACTUALLY I DON'T KNOW WHAT TO DO WITH THE END LOL
+        glActiveTexture(glTextures[i-5]);
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+        image = SOIL_load_image(textureFiles[i-5], &width, &height, 0, SOIL_LOAD_RGB);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+        SOIL_free_image_data(image);
+        
+        meshObjects[i]->textured = 1;
+        glUniform1i(program.uniform("tex"), 0);
+    }*/
+    
+    //TODO: THIS CODE WAS CAUSING THE GL_INVALID_VALUE
+    /*GLuint textures[1];
+    glGenTextures(1, textures);
+    int width, height; unsigned char* image;
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    image = SOIL_load_image("../data/darumaotoshi_obj/hammer_c.JPG", &width, &height, 0, SOIL_LOAD_RGB);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    std::cout << "finished glTexImage2D: " << width << ", " << height << "\n";
+    SOIL_free_image_data(image);
+    
+    meshObjects[6]->textured = 1;
+    glUniform1i(program.uniform("tex"), 0);
+    std::cout << "finished glUniform1i\n";*/
+    
+    
 
     // Initialize the OpenGL Program
     // A program controls the OpenGL pipeline and it must contains
@@ -224,21 +284,33 @@ int main(void)
     const GLchar* vertex_shader =
             "#version 150 core\n"
                     "in vec3 position;"
+                    //"in vec2 texcoord;"
                     "uniform mat4 view;"
+                    //"out vec2 Texcoord;"
                     "void main()"
                     "{"
                     "    vec4 vec4pos = vec4(position[0],position[1],position[2],1.0);"
                     "    mat4 newM = view;"
                     "    vec4 newPos = newM * vec4pos;"
                     "    gl_Position = vec4(newPos.xyz, 1.0);"
+                    //"    Texcoord = texcoord;"
                     "}";
     const GLchar* fragment_shader =
             "#version 150 core\n"
+                    //"in vec2 Texcoord;"
                     "out vec4 outColor;"
+                    "uniform bool textured;"
                     "uniform vec3 triangleColor;"
+                    //"uniform sampler2D tex;"
                     "void main()"
                     "{"
-                    "    outColor = vec4(triangleColor, 1.0);"
+                    "    if(textured){"
+                    //"        outColor = texture(tex, Texcoord);"
+                    "        outColor = vec4(triangleColor, 1.0);"
+                    "    }"
+                    "    else{"
+                    "        outColor = vec4(triangleColor, 1.0);"
+                    "    }"
                     "}";
 
     // Compile the two shaders and upload the binary to the GPU
@@ -255,6 +327,8 @@ int main(void)
 
     // Register the mouse callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    
+    glUniform1i(program.uniform("textured"),0);
     
     viewTrans = new ViewTransformations(window);
     viewTrans->updateView();
@@ -293,8 +367,11 @@ int main(void)
     VAO.free();
     //VBO.free();
     
-    for(MeshObject* mo : meshObjects)
+    for(MeshObject* mo : meshObjects){
+        mo->VBO->free();
+        mo->TCBO->free();
         delete mo;
+    }
     meshObjects.clear();
 
     // Deallocate glfw internals

@@ -105,20 +105,124 @@ CMakeFiles/Assignment2_bin.dir/src/main.cpp.o.provides: CMakeFiles/Assignment2_b
 CMakeFiles/Assignment2_bin.dir/src/main.cpp.o.provides.build: CMakeFiles/Assignment2_bin.dir/src/main.cpp.o
 
 
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o: CMakeFiles/Assignment2_bin.dir/flags.make
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o: /Users/ericapeng/Documents/Computer\ Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o   -c "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c"
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c" > CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.i
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c" -o CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.s
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o.requires:
+
+.PHONY : CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o.requires
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o.provides: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o.requires
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o.provides.build
+.PHONY : CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o.provides
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o.provides.build: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o
+
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o: CMakeFiles/Assignment2_bin.dir/flags.make
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o: /Users/ericapeng/Documents/Computer\ Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o   -c "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c"
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c" > CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.i
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c" -o CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.s
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o.requires:
+
+.PHONY : CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o.requires
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o.provides: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o.requires
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o.provides.build
+.PHONY : CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o.provides
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o.provides.build: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o
+
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o: CMakeFiles/Assignment2_bin.dir/flags.make
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o: /Users/ericapeng/Documents/Computer\ Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o   -c "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c"
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c" > CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.i
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c" -o CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.s
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o.requires:
+
+.PHONY : CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o.requires
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o.provides: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o.requires
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o.provides.build
+.PHONY : CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o.provides
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o.provides.build: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o
+
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o: CMakeFiles/Assignment2_bin.dir/flags.make
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o: /Users/ericapeng/Documents/Computer\ Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o   -c "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c"
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c" > CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.i
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S "/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c" -o CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.s
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o.requires:
+
+.PHONY : CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o.requires
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o.provides: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o.requires
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o.provides.build
+.PHONY : CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o.provides
+
+CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o.provides.build: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o
+
+
 # Object files for target Assignment2_bin
 Assignment2_bin_OBJECTS = \
 "CMakeFiles/Assignment2_bin.dir/src/Helpers.cpp.o" \
-"CMakeFiles/Assignment2_bin.dir/src/main.cpp.o"
+"CMakeFiles/Assignment2_bin.dir/src/main.cpp.o" \
+"CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o" \
+"CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o" \
+"CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o" \
+"CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o"
 
 # External object files for target Assignment2_bin
 Assignment2_bin_EXTERNAL_OBJECTS =
 
 Assignment2_bin: CMakeFiles/Assignment2_bin.dir/src/Helpers.cpp.o
 Assignment2_bin: CMakeFiles/Assignment2_bin.dir/src/main.cpp.o
+Assignment2_bin: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o
+Assignment2_bin: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o
+Assignment2_bin: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o
+Assignment2_bin: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o
 Assignment2_bin: CMakeFiles/Assignment2_bin.dir/build.make
 Assignment2_bin: libglfw3.a
 Assignment2_bin: CMakeFiles/Assignment2_bin.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable Assignment2_bin"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable Assignment2_bin"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Assignment2_bin.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -128,6 +232,10 @@ CMakeFiles/Assignment2_bin.dir/build: Assignment2_bin
 
 CMakeFiles/Assignment2_bin.dir/requires: CMakeFiles/Assignment2_bin.dir/src/Helpers.cpp.o.requires
 CMakeFiles/Assignment2_bin.dir/requires: CMakeFiles/Assignment2_bin.dir/src/main.cpp.o.requires
+CMakeFiles/Assignment2_bin.dir/requires: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o.requires
+CMakeFiles/Assignment2_bin.dir/requires: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o.requires
+CMakeFiles/Assignment2_bin.dir/requires: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o.requires
+CMakeFiles/Assignment2_bin.dir/requires: CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o.requires
 
 .PHONY : CMakeFiles/Assignment2_bin.dir/requires
 

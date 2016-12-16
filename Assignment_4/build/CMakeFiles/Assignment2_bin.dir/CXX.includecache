@@ -6,6 +6,8 @@
 
 #IncludeRegexTransform: 
 
+../../ext/SOIL/src/SOIL.h
+
 ../../ext/eigen/Eigen/Cholesky
 Core
 ../../ext/eigen/Eigen/Core
@@ -1065,6 +1067,8 @@ cassert
 -
 Eigen/Dense
 -
+math.h
+-
 
 /Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/Assignment_4/src/Helpers.h
 string
@@ -1072,6 +1076,8 @@ string
 vector
 -
 Eigen/Core
+-
+SOIL.h
 -
 windows.h
 -

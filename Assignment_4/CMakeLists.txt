@@ -28,6 +28,7 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL " " FORCE)
 set(GLFW_BUILD_INSTALL OFF CACHE BOOL " " FORCE)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../ext/glfw" "glfw")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../ext/glfw/include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../ext/SOIL/src")
 set(LIBRARIES "glfw" ${GLFW_LIBRARIES})
 
 ### On windows, you also need glew
@@ -42,6 +43,9 @@ endif()
 file(GLOB SOURCES
 "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
+file(GLOB SOILSOURCES
+"${CMAKE_CURRENT_SOURCE_DIR}/../ext/SOIL/src/*.c"
+)
 
-add_executable(${PROJECT_NAME}_bin ${SOURCES})
+add_executable(${PROJECT_NAME}_bin ${SOURCES} ${SOILSOURCES})
 target_link_libraries(${PROJECT_NAME}_bin ${LIBRARIES})

@@ -193,6 +193,114 @@ glfw/fast:
 	$(MAKE) -f glfw/src/CMakeFiles/glfw.dir/build.make glfw/src/CMakeFiles/glfw.dir/build
 .PHONY : glfw/fast
 
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.o: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.o
+
+# target to build an object file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.o
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.i: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.i
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.i
+
+# target to preprocess a source file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.i:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.i
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.i
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.s: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.s
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.s
+
+# target to generate assembly for a file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.s:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.s
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.c.s
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.o: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.o
+
+# target to build an object file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.o
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.i: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.i
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.i
+
+# target to preprocess a source file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.i:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.i
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.i
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.s: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.s
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.s
+
+# target to generate assembly for a file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.s:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.s
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.c.s
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.o: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.o
+
+# target to build an object file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.o
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.i: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.i
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.i
+
+# target to preprocess a source file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.i:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.i
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.i
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.s: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.s
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.s
+
+# target to generate assembly for a file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.s:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.s
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.c.s
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.o: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.o
+
+# target to build an object file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.o
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.i: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.i
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.i
+
+# target to preprocess a source file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.i:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.i
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.i
+
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.s: Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.s
+
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.s
+
+# target to generate assembly for a file
+Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.s:
+	$(MAKE) -f CMakeFiles/Assignment2_bin.dir/build.make CMakeFiles/Assignment2_bin.dir/Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.s
+.PHONY : Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.c.s
+
 src/Helpers.o: src/Helpers.cpp.o
 
 .PHONY : src/Helpers.o
@@ -262,6 +370,18 @@ help:
 	@echo "... Assignment2_bin"
 	@echo "... uninstall"
 	@echo "... glfw"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.o"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.i"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/SOIL.s"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.o"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.i"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_DXT.s"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.o"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.i"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/image_helper.s"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.o"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.i"
+	@echo "... Users/ericapeng/Documents/Computer_Graphics/Assignments/Assignment4/ext/SOIL/src/stb_image_aug.s"
 	@echo "... src/Helpers.o"
 	@echo "... src/Helpers.i"
 	@echo "... src/Helpers.s"

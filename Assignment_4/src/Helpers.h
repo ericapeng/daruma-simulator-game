@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <Eigen/Core>
+#include <SOIL.h>
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -136,16 +137,19 @@ public:
     Eigen::MatrixXf FTC;
     Eigen::MatrixXf FN;
     VertexBufferObject* VBO;
+    VertexBufferObject* TCBO;
+    Eigen::MatrixXf VFull;
+    
+    int textured;
+    
 private:
+    Eigen::MatrixXf trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Verts);
 };
 
 //ALL CODE BENEATH THIS LINE IS ADAPTED FROM libigl
 #define IGL_INLINE inline
 namespace igl
 {
-    template <typename TestClass>
-    bool test(TestClass obj);
-    
     template <typename Scalar, typename Index>
     bool readOBJ(
                             const std::string obj_file_name, int pass,

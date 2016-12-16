@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <Eigen/Dense>
+#include <math.h>
 
 void VertexArrayObject::init()
 {
@@ -216,11 +217,133 @@ void update_pointer(float* M_p, Eigen::MatrixXf M){
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : V(V), TC(TC), N(N), F(F), FTC(FTC), FN(FN)
+MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : V(V), TC(TC), N(N), F(F), FTC(FTC), FN(FN), textured(0)
 {
+    trianglify(F, V);
+    //trianglify(FTC, TC);
+    //trianglify(FN, N);
+    
     VBO = new VertexBufferObject();
     VBO->init();
-    VBO->update(V);
+    //TCBO = new VertexBufferObject();
+    //TCBO->init();
+    
+    Eigen::MatrixXf VFinal(3, F.cols()*3);
+    //Eigen::MatrixXf TCFinal(2, FTC.cols()*3);
+    
+    /*if(F.cols() != FTC.cols() || F.cols() != FN.cols()){
+        std::cout << "NUMBER OF FACES DOES NOT MATCH FOR F, FTC, AND FN: \n";
+        std::cout << "F.cols(): " << F.cols() << ", FTC.cols(): " << FTC.cols() << ", FN.cols(): " << FN.cols() << "\n";
+    }*/
+    
+    /*std::cout << "vertices: \n" << V;
+    std::cout << "\nfaces: \n" << F << "\n";*/
+    int computedI = 0;
+    for(int i = 0; i < F.cols(); i++) {
+        computedI = i*3;
+        for(int j = 0; j < 3; j++){
+            if(F(j,i) > V.cols() || F(j,i) < 0){
+                std::cout << F(j,i) << " > or < " << V.cols() << "\n";
+            }
+            /*std::cout << "generating a triangle from column " << i << " of F, which looks like: ";
+            std::cout << F(0,i) << ", " << F(1,i) << ", " << F(2,i) << "\n";*/
+            VFinal.col(computedI+j) << V.col(F(j,i));
+            //TCFinal.col(i+j) << TC.col(FTC(j,i));
+        }
+    }
+    //std::cout << VFinal.transpose() << "\n";
+    VFull = VFinal;
+    
+    VBO->update(VFinal);
+    //TCBO->update(TCFinal);
+    
+    /*VBO = new VertexBufferObject();
+    VBO->init();
+    VBO->update(V);*/
+}
+
+Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Verts)
+{
+    if(M.rows() != 4){
+        std::cout << "ERROR: Can only trianglify face matrices made up of four vertices per face.\n";
+        return M;
+    }
+    
+    //std::cout << Verts.transpose() << "\n";
+    
+    Eigen::MatrixXf newM(3, M.cols()*2);
+    int a;
+    int b;
+    int c;
+    int d;
+    std::vector<double> angles;
+    std::vector<Eigen::Vector3f> rays;
+    int computedI = 0;
+    Eigen::Vector3f curVect;
+    Eigen::Vector3f start;
+    Eigen::Vector3f end;
+    for(int i = 0; i < M.cols(); i++){
+        a = M(0,i);
+        //std::cout << "THE COLUMN " << i << " TO EVAL IS:\n" << M.col(i) << "\n";
+        //calculate the diagonal vector
+        for(int j = 1; j < 4; j++){
+            //std::cout << "\nvect1: \n" << Verts.col(M(j,i)) << "at M(j,i) = " << M(j,i);
+            //std::cout << "\nvect2: \n" << Verts.col(a) << "at a = " << a;
+            if(Verts.rows() == 2){
+                end << Verts.col(M(j,i)), 0;
+                start << Verts.col(a), 0;
+            }
+            else{
+                end = Verts.col(M(j,i));
+                start = Verts.col(a);
+            }
+            rays.push_back((end-start).normalized());
+            //std::cout << "ray[" << j-1 << "]= " << rays[j-1] << "\n";
+        }
+        
+        angles.push_back(acos(rays[0].dot(rays[1])));
+        angles.push_back(acos(rays[0].dot(rays[2])));
+        angles.push_back(acos(rays[1].dot(rays[2])));
+        
+        /*std::cout << "angles[0] is " << angles[0];
+        std::cout << "; angles[1] is " << angles[1];
+        std::cout << "; angles[2] is " << angles[2] << "\n";*/
+        
+        //if the vector from M(0,i) to M(2,i) is in the middle
+        if(angles[1] > angles[0] && angles[1] > angles[2]){
+            b = M(2,i);
+            c = M(1,i);
+            d = M(3,i);
+        }
+        //if the vector from M(0,i) to M(1,i) is in the middle
+        else if(angles[2] > angles[1] && angles[2] > angles[0]){
+            b = M(1,i);
+            c = M(2,i);
+            d = M(3,i);
+        }
+        //if the vector from M(0,i) to M(3,i) is in the middle
+        else if(angles[0] > angles[1] && angles[0] > angles[2]){
+            b = M(3,i);
+            c = M(2,i);
+            d = M(1,i);
+        }
+        else{
+            std::cout << "A CASE YOU DIDN'T ACCOUNT FOR OCCURRED\n";
+        }
+        
+        computedI = i*2;
+        newM.col(computedI) << a, c, b;
+        newM.col(computedI+1) << b, d, a;
+    }
+    
+    //M.resize(3, M.cols()*2);
+    //for(int i = 0; i < newM.cols(); i++){
+    //    M.col(i) << newM(0,i), newM(1,i), newM(2,i);
+    //}
+    M = newM;
+    
+    //std::cout << "\n\nFIN\n\n";
+    return newM;
 }
 
 
@@ -231,11 +354,6 @@ MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N,
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename TestClass>
-bool igl::test(TestClass obj) {
-    std::cout << obj << "\n";
-    return true;
-}
 #define IGL_INLINE inline
 template <typename Scalar, typename Index>
 bool igl::readOBJ(
@@ -279,6 +397,15 @@ bool igl::readOBJ(
     
     int currPass = -1;
     std::string lastType = f;
+    int vCount = 0;
+    std::vector<int> vOffset;
+    vOffset.push_back(0);
+    int tcCount = 0;
+    std::vector<int> tcOffset;
+    tcOffset.push_back(0);
+    int nCount = 0;
+    std::vector<int> nOffset;
+    nOffset.push_back(0);
     
     char line[IGL_LINE_MAX];
     int line_no = 1;
@@ -289,15 +416,38 @@ bool igl::readOBJ(
         // Read first word containing type
         if(sscanf(line, "%s",type) == 1)
         {
-            if(type == v && lastType == f)
+            if(type == v)
             {
-                currPass++;
-                lastType = v;
+                if(lastType == f){
+                    currPass++;
+                    lastType = v;
+                }
+                vCount++;
             }
-            if(type == f && lastType == v)
+            else if(type == vn){
+                if(lastType == v){
+                    vOffset.push_back(vCount);
+                    lastType = vn;
+                }
+                nCount++;
+            }
+            else if(type == vt){
+                if(lastType == vn){
+                    nOffset.push_back(nCount);
+                    lastType = vt;
+                }
+                tcCount++;
+            }
+            if(type == f && lastType == vt)
             {
+                tcOffset.push_back(tcCount);
                 lastType = f;
             }
+            /*if(type == f && lastType == v)
+            {
+                lastType = f;
+            }*/
+
             
             if(currPass == pass){
                 // Get pointer to rest of line right after type
@@ -354,8 +504,8 @@ bool igl::readOBJ(
                         fclose(obj_file);
                         return false;
                     }
-                    std::vector<Scalar > tex(count);
-                    for(int i = 0;i<count;i++)
+                    std::vector<Scalar > tex(2);    //forcefully discard the third coordinate
+                    for(int i = 0;i<2;i++)
                     {
                         tex[i] = x[i];
                     }
@@ -391,20 +541,20 @@ bool igl::readOBJ(
                         long int i,it,in;
                         if(sscanf(word,"%ld/%ld/%ld",&i,&it,&in) == 3)
                         {
-                            f.push_back(shift(i));
-                            ftc.push_back(shift_t(it));
-                            fn.push_back(shift_n(in));
+                            f.push_back(shift(i)-vOffset[pass]);
+                            ftc.push_back(shift_t(it)-tcOffset[pass]);
+                            fn.push_back(shift_n(in)-nOffset[pass]);
                         }else if(sscanf(word,"%ld/%ld",&i,&it) == 2)
                         {
-                            f.push_back(shift(i));
-                            ftc.push_back(shift_t(it));
+                            f.push_back(shift(i)-vOffset[pass]);
+                            ftc.push_back(shift_t(it)-tcOffset[pass]);
                         }else if(sscanf(word,"%ld//%ld",&i,&in) == 2)
                         {
-                            f.push_back(shift(i));
-                            fn.push_back(shift_n(in));
+                            f.push_back(shift(i)-vOffset[pass]);
+                            fn.push_back(shift_n(in)-nOffset[pass]);
                         }else if(sscanf(word,"%ld",&i) == 1)
                         {
-                            f.push_back(shift(i));
+                            f.push_back(shift(i)-vOffset[pass]);
                         }else
                         {
                             fprintf(stderr,
@@ -616,8 +766,6 @@ IGL_INLINE int igl::max_size(const std::vector<T> & V)
     return max_size;
 }
 
-//template bool igl::test<std::string>(std::string obj);
-template bool igl::test<char const*>(char const*);
 template bool igl::readOBJ<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, int, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
 
 
