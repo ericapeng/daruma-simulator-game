@@ -217,24 +217,27 @@ void update_pointer(float* M_p, Eigen::MatrixXf M){
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : V(V), TC(TC), N(N), F(F), FTC(FTC), FN(FN), textured(0)
+MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : V(V), TC(TC), N(N), F(F), FTC(FTC), FN(FN), textured(0), texIndex(-1), solidColor(0,0,0)
 {
     trianglify(F, V);
-    //trianglify(FTC, TC);
-    //trianglify(FN, N);
+    trianglify(FTC, TC);
+    trianglify(FN, N);
     
     VBO = new VertexBufferObject();
     VBO->init();
-    //TCBO = new VertexBufferObject();
-    //TCBO->init();
+    TCBO = new VertexBufferObject();
+    TCBO->init();
+    NBO = new VertexBufferObject();
+    NBO->init();
     
     Eigen::MatrixXf VFinal(3, F.cols()*3);
-    //Eigen::MatrixXf TCFinal(2, FTC.cols()*3);
+    Eigen::MatrixXf TCFinal(2, FTC.cols()*3);
+    Eigen::MatrixXf NFinal(3, F.cols()*3);
     
-    /*if(F.cols() != FTC.cols() || F.cols() != FN.cols()){
+    if(F.cols() != FTC.cols() || F.cols() != FN.cols()){
         std::cout << "NUMBER OF FACES DOES NOT MATCH FOR F, FTC, AND FN: \n";
         std::cout << "F.cols(): " << F.cols() << ", FTC.cols(): " << FTC.cols() << ", FN.cols(): " << FN.cols() << "\n";
-    }*/
+    }
     
     /*std::cout << "vertices: \n" << V;
     std::cout << "\nfaces: \n" << F << "\n";*/
@@ -248,14 +251,18 @@ MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N,
             /*std::cout << "generating a triangle from column " << i << " of F, which looks like: ";
             std::cout << F(0,i) << ", " << F(1,i) << ", " << F(2,i) << "\n";*/
             VFinal.col(computedI+j) << V.col(F(j,i));
-            //TCFinal.col(i+j) << TC.col(FTC(j,i));
+            TCFinal.col(computedI+j) << TC.col(FTC(j,i));
+            NFinal.col(computedI+j) << N.col(FN(j,i));
         }
     }
     //std::cout << VFinal.transpose() << "\n";
     VFull = VFinal;
+    TCFull = TCFinal;
+    NFull = NFinal;
     
     VBO->update(VFinal);
-    //TCBO->update(TCFinal);
+    TCBO->update(TCFinal);
+    NBO->update(NFinal);
     
     /*VBO = new VertexBufferObject();
     VBO->init();
@@ -346,6 +353,16 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
     return newM;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//BLOCK IMPLEMENTED METHODS
+//
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN) {
+
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

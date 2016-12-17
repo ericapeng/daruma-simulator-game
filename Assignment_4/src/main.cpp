@@ -77,16 +77,28 @@ void drawMeshObjects(){
         // The following line connects the VBO we defined above with the position "slot"
         // in the vertex shader
         program.bindVertexAttribArray("position",*(object->VBO));
-        //program.bindVertexAttribArray("texcoord",*(object->TCBO));
+        program.bindVertexAttribArray("texcoord",*(object->TCBO));
+        program.bindVertexAttribArray("normal",*(object->NBO));
+        check_gl_error();
         glUniform1i(program.uniform("textured"),object->textured);
+        if(object->textured)
+            glUniform1i(program.uniform("tex"), object->texIndex);
+        else
+            glUniform3f(program.uniform("triangleColor"), object->solidColor.x(), object->solidColor.y(), object->solidColor.z());
+        check_gl_error();
         //glUniformMatrix4fv(program.uniform("MModel"), 1, true, object->T_pointer);
-        for(int i = 0; i < object->VFull.cols(); i+=3)
-            glDrawArrays(GL_LINE_LOOP, i, 3);
+        glDrawArrays(GL_TRIANGLES, 0, object->VFull.cols());
+        //for(int i = 0; i < object->VFull.cols(); i+=3)
+        //    glDrawArrays(GL_LINE_LOOP, i, 3);
     }
-    /*int objectToDraw = 0;
+    /*int objectToDraw = 5;
     program.bindVertexAttribArray("position",*(meshObjects[objectToDraw]->VBO));
     glUniform1i(program.uniform("textured"),meshObjects[objectToDraw]->textured);
+    if(meshObjects[objectToDraw]->textured)
+        glUniform1i(program.uniform("tex"), meshObjects[objectToDraw]->texIndex);
     glDrawArrays(GL_TRIANGLES, 0, meshObjects[objectToDraw]->VFull.cols());*/
+    
+    //testing with a cube
     /*Eigen::MatrixXf triangle(3,3);
     for(int i = 0; i < meshObjects[objectToDraw]->VFull.cols(); i+=3){
         triangle.col(0) << meshObjects[objectToDraw]->VFull.col(i);
@@ -212,70 +224,6 @@ int main(void)
     0, 0, 0, 0;
     VBO.update(V);*/
     
-    Eigen::Matrix<double, -1, -1, 0, -1, -1> VM;
-    Eigen::Matrix<double, -1, -1, 0, -1, -1> TCM;
-    Eigen::Matrix<double, -1, -1, 0, -1, -1> NM;
-    Eigen::Matrix<int, -1, -1, 0, -1, -1> FM;
-    Eigen::Matrix<int, -1, -1, 0, -1, -1> FTCM;
-    Eigen::Matrix<int, -1, -1, 0, -1, -1> FNM;
-    for(int i = 0; i < 7; i++){
-        igl::readOBJ("../data/darumaotoshi_obj/darumaotoshi_obj.obj", i, VM, TCM, NM, FM, FTCM, FNM);
-        meshObjects.push_back(new MeshObject(
-                                             VM.transpose().cast<float>(),
-                                             TCM.transpose().cast<float>(),
-                                             NM.transpose().cast<float>(),
-                                             FM.transpose().cast<float>(),
-                                             FTCM.transpose().cast<float>(),
-                                             FNM.transpose().cast<float>()));
-    }
-    /*igl::readOBJ("../data/cube.obj", 0, VM, TCM, NM, FM, FTCM, FNM);
-    meshObjects.push_back(new MeshObject(
-                                         VM.transpose().cast<float>(),
-                                         TCM.transpose().cast<float>(),
-                                         NM.transpose().cast<float>(),
-                                         FM.transpose().cast<float>(),
-                                         FTCM.transpose().cast<float>(),
-                                         FNM.transpose().cast<float>()));*/
-    
-    //set textures
-    /*std::vector<std::string> textureFiles;
-    textureFiles.push_back("../data/darumaotoshi_obj/atama_d.jpg");
-    textureFiles.push_back("../data/darumaotoshi_obj/hammer_c.JPG");
-    std::vector<int> glTextures;
-    glTextures.push_back(GL_TEXTURE0);
-    glTextures.push_back(GL_TEXTURE1);
-    
-    GLuint textures[textureFiles.size()];
-    glGenTextures(textureFiles.size(), textures);
-    int width, height; unsigned char* image;
-    for(size_t i = 5; i < meshObjects.size(); i++){
-        //UM, ACTUALLY I DON'T KNOW WHAT TO DO WITH THE END LOL
-        glActiveTexture(glTextures[i-5]);
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
-        image = SOIL_load_image(textureFiles[i-5], &width, &height, 0, SOIL_LOAD_RGB);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-        SOIL_free_image_data(image);
-        
-        meshObjects[i]->textured = 1;
-        glUniform1i(program.uniform("tex"), 0);
-    }*/
-    
-    //TODO: THIS CODE WAS CAUSING THE GL_INVALID_VALUE
-    /*GLuint textures[1];
-    glGenTextures(1, textures);
-    int width, height; unsigned char* image;
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-    image = SOIL_load_image("../data/darumaotoshi_obj/hammer_c.JPG", &width, &height, 0, SOIL_LOAD_RGB);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    std::cout << "finished glTexImage2D: " << width << ", " << height << "\n";
-    SOIL_free_image_data(image);
-    
-    meshObjects[6]->textured = 1;
-    glUniform1i(program.uniform("tex"), 0);
-    std::cout << "finished glUniform1i\n";*/
-    
     
 
     // Initialize the OpenGL Program
@@ -284,33 +232,46 @@ int main(void)
     const GLchar* vertex_shader =
             "#version 150 core\n"
                     "in vec3 position;"
-                    //"in vec2 texcoord;"
+                    "in vec2 texcoord;"
+                    "in vec3 normal;"
                     "uniform mat4 view;"
-                    //"out vec2 Texcoord;"
+                    "out vec3 Position;"
+                    "out vec2 Texcoord;"
+                    "out vec3 Normal;"
                     "void main()"
                     "{"
                     "    vec4 vec4pos = vec4(position[0],position[1],position[2],1.0);"
                     "    mat4 newM = view;"
                     "    vec4 newPos = newM * vec4pos;"
                     "    gl_Position = vec4(newPos.xyz, 1.0);"
-                    //"    Texcoord = texcoord;"
+    
+                    "    Position = position;"
+                    "    Texcoord = texcoord;"
+                    "    Normal = normal;"
                     "}";
     const GLchar* fragment_shader =
             "#version 150 core\n"
-                    //"in vec2 Texcoord;"
+                    "in vec3 Position;"
+                    "in vec2 Texcoord;"
+                    "in vec3 Normal;"
                     "out vec4 outColor;"
                     "uniform bool textured;"
                     "uniform vec3 triangleColor;"
-                    //"uniform sampler2D tex;"
+                    "uniform sampler2D tex;"
+                    "uniform vec3 lightPos;"
+                    "uniform float ambient;"
                     "void main()"
                     "{"
                     "    if(textured){"
-                    //"        outColor = texture(tex, Texcoord);"
-                    "        outColor = vec4(triangleColor, 1.0);"
+                    "        outColor = texture(tex, Texcoord);"
                     "    }"
                     "    else{"
                     "        outColor = vec4(triangleColor, 1.0);"
                     "    }"
+    
+                    "    vec3 lightRay = normalize(lightPos - Position);"
+                    "    float diffuse = max(dot(Normal,lightRay), 0.0);"
+                    "    outColor = outColor * min(diffuse + ambient, 1.0);"
                     "}";
 
     // Compile the two shaders and upload the binary to the GPU
@@ -328,10 +289,102 @@ int main(void)
     // Register the mouse callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     
+    //--------------------------------------------------------------------------------------------
+    
     glUniform1i(program.uniform("textured"),0);
     
     viewTrans = new ViewTransformations(window);
     viewTrans->updateView();
+    
+    glUniform3f(program.uniform("lightPos"), 1.0f, 4.0f, 2.0f);
+    glUniform1f(program.uniform("ambient"), 0.5f);
+    
+    Eigen::Matrix<double, -1, -1, 0, -1, -1> VM;
+    Eigen::Matrix<double, -1, -1, 0, -1, -1> TCM;
+    Eigen::Matrix<double, -1, -1, 0, -1, -1> NM;
+    Eigen::Matrix<int, -1, -1, 0, -1, -1> FM;
+    Eigen::Matrix<int, -1, -1, 0, -1, -1> FTCM;
+    Eigen::Matrix<int, -1, -1, 0, -1, -1> FNM;
+    for(int i = 0; i < 7; i++){
+        igl::readOBJ("../data/darumaotoshi_obj/darumaotoshi_obj.obj", i, VM, TCM, NM, FM, FTCM, FNM);
+        meshObjects.push_back(new MeshObject(
+                                             VM.transpose().cast<float>(),
+                                             TCM.transpose().cast<float>(),
+                                             NM.transpose().cast<float>(),
+                                             FM.transpose().cast<float>(),
+                                             FTCM.transpose().cast<float>(),
+                                             FNM.transpose().cast<float>()));
+    }
+    MeshObject* temp = meshObjects[5];
+    meshObjects[5] = meshObjects[1];
+    meshObjects[1] = temp;
+    /*igl::readOBJ("../data/cube.obj", 0, VM, TCM, NM, FM, FTCM, FNM);
+     meshObjects.push_back(new MeshObject(
+     VM.transpose().cast<float>(),
+     TCM.transpose().cast<float>(),
+     NM.transpose().cast<float>(),
+     FM.transpose().cast<float>(),
+     FTCM.transpose().cast<float>(),
+     FNM.transpose().cast<float>()));*/
+    
+    //set colors
+    meshObjects[0]->solidColor << 0.0, 0.5, 0.0;
+    meshObjects[1]->solidColor << 1.0, 0.0, 1.0;
+    meshObjects[2]->solidColor << 1.0, 1.0, 0.0;
+    meshObjects[3]->solidColor << 1.0, 0.0, 0.0;
+    meshObjects[4]->solidColor << 0.0, 1.0, 1.0;
+    
+    //set textures
+    std::vector<std::string> textureFiles;
+    textureFiles.push_back("../data/darumaotoshi_obj/atama.png");
+    textureFiles.push_back("../data/darumaotoshi_obj/hammer_c.JPG");
+    std::vector<int> glTextures;
+    glTextures.push_back(GL_TEXTURE0);
+    glTextures.push_back(GL_TEXTURE1);
+     
+    GLuint textures[textureFiles.size()];
+    glGenTextures(textureFiles.size(), textures);
+    int width, height; unsigned char* image;
+    for(size_t i = 5; i < meshObjects.size(); i++){
+        //I might have to do this everytime I render??
+        glActiveTexture(glTextures[i-5]);
+        glBindTexture(GL_TEXTURE_2D, textures[i-5]);
+        image = SOIL_load_image(textureFiles[i-5].c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+        SOIL_free_image_data(image);
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        
+        meshObjects[i]->textured = 1;
+        meshObjects[i]->texIndex = i-5;
+    }
+    //
+    
+    /*GLuint textures[1];
+    glGenTextures(1, textures);
+    int width, height; unsigned char* image;
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    image = SOIL_load_image("../data/darumaotoshi_obj/atama.png", &width, &height, 0, SOIL_LOAD_RGB);
+    //std::cout << "height: " << height << ", width: " << width << "\n";
+    //for(int i = 0; i < height*width; i++){
+    //    std::cout << (int)(image[i]) << " ";
+    //}
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    SOIL_free_image_data(image);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    meshObjects[5]->textured = 1;
+    glUniform1i(program.uniform("tex"), 0);*/
+    
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))

@@ -138,12 +138,29 @@ public:
     Eigen::MatrixXf FN;
     VertexBufferObject* VBO;
     VertexBufferObject* TCBO;
+    VertexBufferObject* NBO;
     Eigen::MatrixXf VFull;
+    Eigen::MatrixXf TCFull;
+    Eigen::MatrixXf NFull;
+    Eigen::MatrixXf VN;
     
     int textured;
+    int texIndex;
+    Eigen::Vector3d solidColor;
     
 private:
     Eigen::MatrixXf trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Verts);
+};
+
+class Block : public MeshObject
+{
+public:
+    Block(Eigen::MatrixXf V,
+          Eigen::MatrixXf TC,
+          Eigen::MatrixXf N,
+          Eigen::MatrixXf F,
+          Eigen::MatrixXf FTC,
+          Eigen::MatrixXf FN);
 };
 
 //ALL CODE BENEATH THIS LINE IS ADAPTED FROM libigl
