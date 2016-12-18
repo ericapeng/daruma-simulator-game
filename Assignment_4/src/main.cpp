@@ -33,8 +33,8 @@ public:
         cam_A.setIdentity(4,4);
         window_A.setIdentity(4,4);
         //initial view
-        //cam_A.col(3) << 0, -0.7, 0, 1;
-        cam_A *= 1.0/2;
+        windowyShift = -0.3;
+        cam_A *= 3.0/4.0;
     }
     void updateView(int code = -1) {
         //zoom out
@@ -103,10 +103,10 @@ public:
     }
     
     Eigen::MatrixXf getM(){
-        return /*getMVP()**/(getMOrth()*getMCam());
-        //return Eigen::MatrixXf::Identity(4,4);
+        return (getMOrth()*getMCam());
     }
     
+    double windowyShift;
     Eigen::Vector3f camPos;
     Eigen::MatrixXf cam_A;
     float* M_pointer = new float[16];
@@ -144,7 +144,7 @@ Eigen::Vector2f getCursorPosInWorld() {
     
     Eigen::MatrixXf pointTransform = viewTrans->view_A * viewTrans->getM();
     pointTransform = pointTransform.inverse();
-    Eigen::Vector4f cursorPos4f(xworld, yworld, 0, 1);
+    Eigen::Vector4f cursorPos4f(xworld, yworld + viewTrans->windowyShift*(-1.0), 0, 1);
     cursorPos4f = pointTransform * cursorPos4f;
     
     //shift to account for camera and zoom
@@ -360,16 +360,17 @@ int main(void)
                     "uniform mat4 view;"
                     "uniform mat4 M;"
                     "uniform mat4 Transformation;"
+                    "uniform float windowShift;"
                     "out vec3 Position;"
                     "out vec2 Texcoord;"
                     "out vec3 Normal;"
                     "void main()"
                     "{"
                     "    vec4 vec4pos = vec4(position[0],position[1],position[2],1.0);"
-                    "    mat4 newM = view * M * Transformation;"
+                    "    mat4 newM = view * (M * Transformation);"
                     "    vec4 newPos = newM * vec4pos;"
-                    "    gl_Position = vec4(newPos.xyz, 1.0);"
-                    //"    gl_Position = vec4(newPos.x * (-1.0), newPos.y, newPos.z * (-1.0), 1.0);"
+                    //"    gl_Position = vec4(newPos.xyz, 1.0);"
+                    "    gl_Position = vec4(newPos.x, newPos.y + windowShift, newPos.z, 1.0);"
     
                     "    Position = position;"
                     "    Texcoord = texcoord;"
@@ -425,6 +426,8 @@ int main(void)
     viewTrans->updateView();
     update_pointer(viewTrans->M_pointer, viewTrans->getM());
     glUniformMatrix4fv(program.uniform("M"), 1, false, viewTrans->M_pointer);
+    glUniform1f(program.uniform("windowShift"), viewTrans->windowyShift);
+    
     
     glUniform3f(program.uniform("lightPos"), 1.0f, 4.0f, 2.0f);
     glUniform1f(program.uniform("ambient"), 0.5f);
