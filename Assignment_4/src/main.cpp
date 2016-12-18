@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <vector>
+#include <deque>
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 
@@ -24,6 +25,10 @@ GLFWwindow* window;
 std::vector<MeshObject*> meshObjects;
 
 float* view_A_pointer = new float[16];
+
+std::chrono::time_point<std::chrono::high_resolution_clock> t_last;
+std::deque<double> cursorXVelocities;
+std::deque<double> cursorXSamples;
 
 class ViewTransformations
 {
@@ -206,10 +211,56 @@ void drawMeshObjects() {
     }*/
 }
 
+void sampleCursorVel() {
+    // Set the uniform value depending on the time difference
+    auto t_now = std::chrono::high_resolution_clock::now();
+    float interval = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_last).count();
+    t_last = t_now;
+    Eigen::Vector2f cursorPos = getCursorPosInWorld();
+    
+    if(cursorXSamples.size() == 0){
+        cursorXSamples.push_back(cursorPos.x());
+    }
+    else {
+        if(cursorXVelocities.size() > 2){
+            cursorXVelocities.pop_front();
+            cursorXSamples.pop_front();
+        }
+        cursorXVelocities.push_back((cursorPos.x() - cursorXSamples.back())/interval);
+        cursorXSamples.push_back(cursorPos.x());
+    }
+    
+    /*std::cout << "cursorXVelocities: ";
+    for(std::deque<double>::iterator i = cursorXVelocities.begin(); i < cursorXVelocities.end(); i++)
+        std::cout << *i << ", ";
+    std::cout << "\n";*/
+}
+
+void checkForHit() {
+    //check if hammer faces are inside bounds of a block
+    Block* currBlock;
+    Hammer* hammer = (Hammer*)(meshObjects[6]);
+    Eigen::Vector3f leftFace = hammer->getTransformed(hammer->leftFace);
+    Eigen::Vector3f rightFace = hammer->getTransformed(hammer->rightFace);
+    double xMinBound;
+    double xMaxBound;
+    for(size_t i = 0; i < 6; i++) {
+        currBlock = (Block*)(meshObjects[i]);
+        xMinBound = currBlock->getTransformed(*(new Eigen::Vector3f(currBlock->xMinBound,0,0))).x();
+        xMaxBound = currBlock->getTransformed(*(new Eigen::Vector3f(currBlock->xMaxBound,0,0))).x();
+        if(leftFace.y() < currBlock->yMaxBound && leftFace.y() > currBlock->yMinBound){
+            if(leftFace.x() <= xMaxBound && leftFace.x() >= xMinBound)
+                currBlock->hit(cursorXVelocities);
+            else if(rightFace.x() >= xMinBound && rightFace.x() <= xMaxBound)
+                currBlock->hit(cursorXVelocities);
+        }
+    }
+}
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     // Get the position of the mouse in the window
-    double xpos, ypos;
+    /*double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
     // Get the size of the window
@@ -227,7 +278,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     xworld = cursorPos.x();
     yworld = cursorPos.y();
     
-    std::cout << "mouse at: " << xworld << ", " << yworld << "\n";
+    std::cout << "mouse at: " << xworld << ", " << yworld << "\n";*/
 
     // Update the position of the first vertex if the left button is pressed
     /*if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
@@ -235,6 +286,16 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
     // Upload the change to the GPU
     //VBO.update(V);
+    
+    if(action == GLFW_PRESS)
+        return;
+    
+    Hammer* hammer = (Hammer*)(meshObjects[6]);
+    Eigen::Vector4f extendedLeftFace(hammer->leftFace.x(), hammer->leftFace.y(), hammer->leftFace.z(), 1);
+    extendedLeftFace = hammer->currT * extendedLeftFace;
+    std::cout << "hammer's leftFace: \n" << extendedLeftFace << "\n\n";
+    
+    checkForHit();
 }
 
 int shift_on = 0;
@@ -408,7 +469,7 @@ int main(void)
     program.bind();
 
     // Save the current time --- it will be used to dynamically change the triangle color
-    auto t_start = std::chrono::high_resolution_clock::now();
+    t_last = std::chrono::high_resolution_clock::now();
 
     // Register the keyboard callback
     glfwSetKeyCallback(window, key_callback);
@@ -421,6 +482,8 @@ int main(void)
     glUniform1i(program.uniform("textured"),0);
     
     viewTrans = new ViewTransformations(0,0.5,4);
+    //viewTrans = new ViewTransformations(1,1,4);
+    //viewTrans = new ViewTransformations(4,0,0);
     viewTrans->setVisibleWorldlbn(-1.5,-1.5,1.5);
     viewTrans->setVisibleWorldrtf(1.5,1.5,-1.5);
     viewTrans->updateView();
@@ -521,35 +584,22 @@ int main(void)
     meshObjects[5]->textured = 1;
     glUniform1i(program.uniform("tex"), 0);*/
     
-    /*Eigen::MatrixXf TToApply = Eigen::MatrixXf::Identity(4,4);
-    Eigen::MatrixXf transformation(2,2);
-    int degreesToRotate = -90;
-    double alpha = degreesToRotate*3.14159265/180;
-    transformation << cos(alpha), sin(alpha)*(-1.0), sin(alpha), cos(alpha);
-    TToApply.col(1) << 0, transformation.col(0), 0;
-    TToApply.col(2) << 0, transformation.col(1), 0;*/
-    
-    
-    //translate so that the object's barycenter doesn't change
-    /*Eigen::MatrixXf origV(4,selectedObj->V.cols());
-    origV << selectedObj->V, Eigen::MatrixXf::Ones(1,origV.cols());
-    origV = selectedObj->T * origV;
-    Eigen::MatrixXf newV = T*origV;
-    
-    Eigen::Vector4f origBaryCenter = getObjCenter(origV);
-    Eigen::Vector4f newBaryCenter = getObjCenter(newV);
-    newBaryCenter = (newBaryCenter-origBaryCenter)*(-1.0);
-    
-    T.col(3) << newBaryCenter.x(), newBaryCenter.y(), newBaryCenter.z(), 1;*/
-    //meshObjects[6]->transform(TToApply);
-    meshObjects[6]->rotateyz(90);
+    ((Hammer*)meshObjects[6])->initialState(90);
     
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
         viewTrans->updateView();
+        
         updateHammerPos();
+        
+        sampleCursorVel();
+        checkForHit();
+        for(int i = 0; i < 6; i++) {
+            ((Block*)(meshObjects[i]))->updatePos();
+        }
+        
         //hit(window);
         
         // Bind your VAO (not necessary if you have only one)
@@ -559,9 +609,19 @@ int main(void)
         program.bind();
 
         // Set the uniform value depending on the time difference
-        auto t_now = std::chrono::high_resolution_clock::now();
+        /*auto t_now = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-        glUniform3f(program.uniform("triangleColor"), (float)(sin(time * 4.0f) + 1.0f) / 2.0f, 0.0f, 0.0f);
+        //time is in seconds
+        //every 5 milliseconds, take a sample of the mouse's location
+        if((int)(time*1000) % 5 == 0){
+            std::cout << "The time is " << time <<  " | " << (int)(time*1000) << "\n";
+            if(mouseXSamples.size() < 3)
+                mouseXSamples.push_back();
+        }*/
+        //glUniform3f(program.uniform("triangleColor"), (float)(sin(time * 4.0f) + 1.0f) / 2.0f, 0.0f, 0.0f);
+        //sampleCursorVel();
+        
+        //checkForHit();
 
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);

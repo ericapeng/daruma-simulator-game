@@ -285,7 +285,7 @@ MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N,
 
 void MeshObject::transform(Eigen::MatrixXf newT) {
     currT = newT * T;
-    Eigen::Vector4f fullCenter(center.x(), center.y(), center.z(), 1);
+    //Eigen::Vector4f fullCenter(center.x(), center.y(), center.z(), 1);
     update_pointer(T_pointer, currT);
 }
 
@@ -296,35 +296,10 @@ void MeshObject::translate(Eigen::Vector3f from, Eigen::Vector3f to) {
     transform(TToApply);
 }
 
-//permanently effects T
-void MeshObject::rotateyz(int degrees) {
-    Eigen::MatrixXf TToApply = Eigen::MatrixXf::Identity(4,4);
-    Eigen::MatrixXf transformation(2,2);
-    int degreesToRotate = -90;
-    double alpha = degreesToRotate*3.14159265/180;
-    transformation << cos(alpha), sin(alpha)*(-1.0), sin(alpha), cos(alpha);
-    
-    TToApply.col(1) << 0, transformation.col(0), 0;
-    TToApply.col(2) << 0, transformation.col(1), 0;
-    
-    //translate so that the object's barycenter doesn't change
-    Eigen::MatrixXf origV(4,V.cols());
-    origV << V, Eigen::MatrixXf::Ones(1,origV.cols());
-    origV = T * origV;
-    Eigen::MatrixXf newV = TToApply * origV;
-     
-    Eigen::Vector4f origBaryCenter = getObjCenter(origV);
-    Eigen::Vector4f newBaryCenter = getObjCenter(newV);
-    newBaryCenter = (newBaryCenter-origBaryCenter)*(-1.0);
-    
-    TToApply.col(3) << newBaryCenter.x(), newBaryCenter.y(), newBaryCenter.z(), 1;
-    
-    T = TToApply * T;
-    update_pointer(T_pointer, currT);
-    
-    Eigen::Vector4f fullCenter(center.x(), center.y(), center.z(), 1);
-    fullCenter = T * fullCenter;
-    center << fullCenter.x(), fullCenter.y(), fullCenter.z();
+Eigen::Vector3f MeshObject::getTransformed(Eigen::Vector3f attrib) {
+    Eigen::Vector4f extendedAttrib(attrib.x(), attrib.y(), attrib.z(), 1);
+    extendedAttrib = currT * extendedAttrib;
+    return *(new Eigen::Vector3f(extendedAttrib.x(), extendedAttrib.y(), extendedAttrib.z()));
 }
 
 Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Verts)
@@ -401,42 +376,116 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN), xLeftBound(std::numeric_limits<double>::max()), xRightBound(std::numeric_limits<double>::min()) {
+Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN), xMinBound(std::numeric_limits<double>::max()), xMaxBound(std::numeric_limits<double>::min()), yMaxBound(std::numeric_limits<double>::min()), yMinBound(std::numeric_limits<double>::max()), velocity(0) {
     //determine xLeftBound and xRightBound
-    /*double xToCheck = 0;
+    double xToCheck = 0;
+    double yToCheck = 0;
     for(int i = 0; i < V.cols(); i++) {
         xToCheck = V(0,i);
-        if(xToCheck > xRightBound)
-            xRightBound = xToCheck;
-        if(xToCheck < xLeftBound)
-            xLeftBound = xToCheck;
-    }*/
-    //std::cout << "xLeftBound: " << xLeftBound << ", xRightBound: " << xRightBound << "\n";
+        yToCheck = V(1,i);
+        if(xToCheck > xMaxBound)
+            xMaxBound = xToCheck;
+        if(xToCheck < xMinBound)
+            xMinBound = xToCheck;
+        
+        if(yToCheck > yMaxBound)
+            yMaxBound = yToCheck;
+        if(yToCheck < yMinBound)
+            yMinBound = yToCheck;
+    }
+    //std::cout << "yMaxBound: " << yMaxBound << ", yMinBound: " << yMinBound << "\n";
+    
+    t_last_update = std::chrono::high_resolution_clock::now();
+}
+
+void Block::hit(std::deque<double> cursorXVelocities) {
+    if(std::abs(cursorXVelocities.back()) > std::abs(velocity))
+        velocity = cursorXVelocities.back();
+}
+
+void Block::updatePos() {
+    auto t_now = std::chrono::high_resolution_clock::now();
+    float interval = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_last_update).count();
+    
+    currT(0,3) = currT(0,3) + velocity*interval;
+    transform(currT);
+    
+    t_last_update = t_now;
 }
 
 
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//BLOCK IMPLEMENTED METHODS
+//HAMMER IMPLEMENTED METHODS
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Hammer::Hammer(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN) {
+Hammer::Hammer(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN), zMaxBound(std::numeric_limits<double>::min()), zMinBound(std::numeric_limits<double>::max()), yMaxBound(std::numeric_limits<double>::min()), yMinBound(std::numeric_limits<double>::max()), xMinBound(std::numeric_limits<double>::max()), xMaxBound(std::numeric_limits<double>::min()) {
     
-    //I wonder how long it is...#include <Eigen/Geometry>
-    /*double xToCheck = 0;
-    double yTopBound = std::numeric_limits<double>::min();
-    double yBottomBound = std::numeric_limits<double>::max();
+    double zToCheck = 0;
+    double yToCheck = 0;
+    double xToCheck = 0;
     for(int i = 0; i < V.cols(); i++) {
+        zToCheck = V(2,i);
+        yToCheck = V(1,i);
         xToCheck = V(0,i);
-        if(xToCheck > yTopBound)
-            yTopBound = xToCheck;
-        if(xToCheck < yBottomBound)
-            yBottomBound = xToCheck;
+        if(zToCheck > zMaxBound)
+            zMaxBound = zToCheck;
+        if(zToCheck < zMinBound)
+            zMinBound = zToCheck;
+        
+        if(yToCheck > yMaxBound)
+            yMaxBound = yToCheck;
+        if(yToCheck < yMinBound)
+            yMinBound = yToCheck;
+        
+        if(xToCheck > xMaxBound)
+            xMaxBound = xToCheck;
+        if(xToCheck < xMinBound)
+            xMinBound = xToCheck;
     }
-    std::cout << "yBottomBound: " << yBottomBound << ", yTopBound: " << yTopBound << "\n";*/
-    //yBottomBound: -0.3102, yTopBound: 0.3102
+}
+
+//permanently effects T
+void Hammer::initialState(int degrees) {
+    Eigen::MatrixXf TToApply = Eigen::MatrixXf::Identity(4,4);
+    Eigen::MatrixXf transformation(2,2);
+    int degreesToRotate = -90;
+    double alpha = degreesToRotate*3.14159265/180;
+    transformation << cos(alpha), sin(alpha)*(-1.0), sin(alpha), cos(alpha);
+    
+    TToApply.col(1) << 0, transformation.col(0), 0;
+    TToApply.col(2) << 0, transformation.col(1), 0;
+    
+    //translate so that the object's barycenter doesn't change
+    Eigen::MatrixXf origV(4,V.cols());
+    origV << V, Eigen::MatrixXf::Ones(1,origV.cols());
+    origV = T * origV;
+    Eigen::MatrixXf newV = TToApply * origV;
+    
+    Eigen::Vector4f origBaryCenter = getObjCenter(origV);
+    Eigen::Vector4f newBaryCenter = getObjCenter(newV);
+    newBaryCenter = (newBaryCenter-origBaryCenter)*(-1.0);
+    
+    TToApply.col(3) << newBaryCenter.x(), newBaryCenter.y(), newBaryCenter.z(), 1;
+    
+    //translate again to align with blocks
+    double shift = (yMaxBound - yMinBound)/4 - (zMaxBound - zMinBound)/2;
+    TToApply(2,3) = TToApply(2,3) + shift;
+    
+    T = TToApply * T;
+    update_pointer(T_pointer, currT);
+    
+    Eigen::Vector4f fullCenter(center.x(), center.y(), center.z(), 1);
+    fullCenter = T * fullCenter;
+    center << fullCenter.x(), fullCenter.y(), fullCenter.z();
+    
+    //init left and right face points
+    Eigen::Vector3f hammerHead(center.x(), center.y(), center.z()-shift);
+    leftFace << hammerHead.x()+xMinBound, hammerHead.y(), hammerHead.z();
+    rightFace <<hammerHead.x()+xMaxBound, hammerHead.y(), hammerHead.z();
 }
 
 

@@ -5,6 +5,10 @@
 #include <vector>
 #include <Eigen/Core>
 #include <SOIL.h>
+#include <deque>
+#include <chrono>
+#include <cmath>
+
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -133,7 +137,7 @@ public:
     
     void transform(Eigen::MatrixXf newT);
     void translate(Eigen::Vector3f from, Eigen::Vector3f to);
-    void rotateyz(int degrees);
+    Eigen::Vector3f getTransformed(Eigen::Vector3f attrib);
     
     Eigen::MatrixXf V;
     Eigen::MatrixXf TC;
@@ -173,8 +177,16 @@ public:
           Eigen::MatrixXf FTC,
           Eigen::MatrixXf FN);
     
-    double xLeftBound;
-    double xRightBound;
+    void hit(std::deque<double> cursorXVelocities);
+    void updatePos();
+    
+    double xMaxBound;
+    double xMinBound;
+    double yMaxBound;
+    double yMinBound;
+    
+    std::chrono::time_point<std::chrono::high_resolution_clock> t_last_update;
+    double velocity;
 private:
     
 };
@@ -189,6 +201,17 @@ public:
           Eigen::MatrixXf FTC,
           Eigen::MatrixXf FN);
     
+    void initialState(int degrees);
+    
+    double zMaxBound;
+    double zMinBound;
+    double yMaxBound;
+    double yMinBound;
+    double xMaxBound;
+    double xMinBound;
+    
+    Eigen::Vector3f leftFace;
+    Eigen::Vector3f rightFace;
 private:
     
 };
