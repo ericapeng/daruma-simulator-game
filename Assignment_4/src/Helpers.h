@@ -119,6 +119,7 @@ void _check_gl_error(const char *file, int line);
 
 //convert eigen matrix to dynamic array to bind the uniform
 void update_pointer(float* M_p, Eigen::MatrixXf M);
+Eigen::VectorXf getObjCenter(Eigen::MatrixXf V);
 
 class MeshObject
 {
@@ -129,6 +130,10 @@ public:
                Eigen::MatrixXf F,
                Eigen::MatrixXf FTC,
                Eigen::MatrixXf FN);
+    
+    void transform(Eigen::MatrixXf newT);
+    void translate(Eigen::Vector3f from, Eigen::Vector3f to);
+    void rotateyz(int degrees);
     
     Eigen::MatrixXf V;
     Eigen::MatrixXf TC;
@@ -148,6 +153,12 @@ public:
     int texIndex;
     Eigen::Vector3d solidColor;
     
+    Eigen::MatrixXf T;
+    Eigen::MatrixXf currT;
+    float* T_pointer;
+    
+    Eigen::Vector3f center;
+    
 private:
     Eigen::MatrixXf trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Verts);
 };
@@ -161,6 +172,25 @@ public:
           Eigen::MatrixXf F,
           Eigen::MatrixXf FTC,
           Eigen::MatrixXf FN);
+    
+    double xLeftBound;
+    double xRightBound;
+private:
+    
+};
+
+class Hammer : public MeshObject
+{
+public:
+    Hammer(Eigen::MatrixXf V,
+          Eigen::MatrixXf TC,
+          Eigen::MatrixXf N,
+          Eigen::MatrixXf F,
+          Eigen::MatrixXf FTC,
+          Eigen::MatrixXf FN);
+    
+private:
+    
 };
 
 //ALL CODE BENEATH THIS LINE IS ADAPTED FROM libigl

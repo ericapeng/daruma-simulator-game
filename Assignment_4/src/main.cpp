@@ -14,9 +14,12 @@
 
 #include <iostream>
 #include <vector>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
 
 // VertexBufferObject wrapper
 Program program;
+GLFWwindow* window;
 
 std::vector<MeshObject*> meshObjects;
 
@@ -25,12 +28,12 @@ float* view_A_pointer = new float[16];
 class ViewTransformations
 {
 public:
-    ViewTransformations(GLFWwindow* window) : window(window), view_A(4,4), cam_A(4,4), window_A(4,4){
+    ViewTransformations(double x, double y, double z) : view_A(4,4), cam_A(4,4), window_A(4,4), camPos(x, y, z){
         view_A.setIdentity(4,4);
         cam_A.setIdentity(4,4);
         window_A.setIdentity(4,4);
         //initial view
-        cam_A.col(3) << 0, -0.7, 0, 1;
+        //cam_A.col(3) << 0, -0.7, 0, 1;
         cam_A *= 1.0/2;
     }
     void updateView(int code = -1) {
@@ -56,6 +59,59 @@ public:
         setView();
     }
     
+    //PRAYING AFTER THIS LINE==================================
+    void transformCamPos(Eigen::Vector3f translation){
+        camPos = camPos+translation;
+    }
+    Eigen::MatrixXf getMCam(){
+        //compute w
+        w = camPos.normalized();
+        
+        //compute u
+        Eigen::Vector3f positiveY(0,1,0);
+        u = w.cross(positiveY).normalized()*(-1.0);
+        
+        //compute v
+        v = w.cross(u);
+        
+        Eigen::MatrixXf MCam(4,4);
+        MCam << u, v, w, camPos,
+        0, 0, 0, 1;
+        MCam = MCam.inverse();
+        return MCam;
+    }
+    
+    //set visible space
+    void setVisibleWorldlbn(double x, double y, double z){lbn << x,y,z;}
+    void setVisibleWorldrtf(double x, double y, double z){rtf << x,y,z;}
+    
+    Eigen::MatrixXf getMOrth(){
+        double l = lbn.x();
+        double b = lbn.y();
+        double n = lbn.z();
+        double r = rtf.x();
+        double t = rtf.y();
+        double f = rtf.z();
+        
+        Eigen::MatrixXf MOrth(4,4);
+        MOrth << 2.0/(r-l), 0, 0, (-1.0)*(r+l)/(r-l),
+        0, 2.0/(t-b), 0, (-1.0)*(t+b)/(t-b),
+        0, 0, -2.0/(n-f), (-1.0)*(n+f)/(n-f),
+        0, 0, 0, 1;
+        
+        return MOrth;
+    }
+    
+    Eigen::MatrixXf getM(){
+        return /*getMVP()**/(getMOrth()*getMCam());
+        //return Eigen::MatrixXf::Identity(4,4);
+    }
+    
+    Eigen::Vector3f camPos;
+    Eigen::MatrixXf cam_A;
+    float* M_pointer = new float[16];
+    Eigen::MatrixXf view_A;
+    
 private:
     void setView() {
         view_A = window_A * cam_A;
@@ -63,15 +119,54 @@ private:
         glUniformMatrix4fv(program.uniform("view"), 1, true, view_A_pointer);
     }
     
-    GLFWwindow* window;
-    Eigen::MatrixXf view_A;
-    Eigen::MatrixXf cam_A;
     Eigen::MatrixXf window_A;
+    
+    Eigen::Vector3f w;
+    Eigen::Vector3f u;
+    Eigen::Vector3f v;
+    Eigen::Vector3f lbn;
+    Eigen::Vector3f rtf;
 };
 
 ViewTransformations* viewTrans;
 
-void drawMeshObjects(){
+Eigen::Vector2f getCursorPosInWorld() {
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    
+    // Get the size of the window
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    
+    // Convert screen position to world coordinates
+    double xworld = ((xpos/double(width))*2)-1;
+    double yworld = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
+    
+    Eigen::MatrixXf pointTransform = viewTrans->view_A * viewTrans->getM();
+    pointTransform = pointTransform.inverse();
+    Eigen::Vector4f cursorPos4f(xworld, yworld, 0, 1);
+    cursorPos4f = pointTransform * cursorPos4f;
+    
+    //shift to account for camera and zoom
+    Eigen::Vector3f viewShift = viewTrans->camPos * (-1.0);
+    viewShift(2) = 0;
+    viewShift *= 1.0/viewTrans->cam_A(0,0);
+    Eigen::Vector3f cursorPos(cursorPos4f.x(), cursorPos4f.y(), cursorPos4f.z());
+    cursorPos = cursorPos + viewShift;
+    
+    xworld = cursorPos.x();
+    yworld = cursorPos.y();
+    
+    return *(new Eigen::Vector2f(xworld, yworld));
+}
+
+void updateHammerPos() {
+    Eigen::Vector2f cursorPos = getCursorPosInWorld();
+    Eigen::Vector3f cursor3f(cursorPos.x(), cursorPos.y(), 0.0);
+    meshObjects[6]->translate(meshObjects[6]->center, cursor3f);
+}
+
+void drawMeshObjects() {
     for(MeshObject* object : meshObjects){
         // The vertex shader wants the position of the vertices as an input.
         // The following line connects the VBO we defined above with the position "slot"
@@ -79,23 +174,25 @@ void drawMeshObjects(){
         program.bindVertexAttribArray("position",*(object->VBO));
         program.bindVertexAttribArray("texcoord",*(object->TCBO));
         program.bindVertexAttribArray("normal",*(object->NBO));
-        check_gl_error();
         glUniform1i(program.uniform("textured"),object->textured);
         if(object->textured)
             glUniform1i(program.uniform("tex"), object->texIndex);
         else
             glUniform3f(program.uniform("triangleColor"), object->solidColor.x(), object->solidColor.y(), object->solidColor.z());
-        check_gl_error();
-        //glUniformMatrix4fv(program.uniform("MModel"), 1, true, object->T_pointer);
+        //check_gl_error();
+        glUniformMatrix4fv(program.uniform("Transformation"), 1, true, object->T_pointer);
         glDrawArrays(GL_TRIANGLES, 0, object->VFull.cols());
-        //for(int i = 0; i < object->VFull.cols(); i+=3)
-        //    glDrawArrays(GL_LINE_LOOP, i, 3);
     }
-    /*int objectToDraw = 5;
+    /*int objectToDraw = 6;
     program.bindVertexAttribArray("position",*(meshObjects[objectToDraw]->VBO));
+    program.bindVertexAttribArray("texcoord",*(meshObjects[objectToDraw]->TCBO));
+    program.bindVertexAttribArray("normal",*(meshObjects[objectToDraw]->NBO));
     glUniform1i(program.uniform("textured"),meshObjects[objectToDraw]->textured);
     if(meshObjects[objectToDraw]->textured)
         glUniform1i(program.uniform("tex"), meshObjects[objectToDraw]->texIndex);
+    else
+        glUniform3f(program.uniform("triangleColor"), meshObjects[objectToDraw]->solidColor.x(), meshObjects[objectToDraw]->solidColor.y(), meshObjects[objectToDraw]->solidColor.z());
+    glUniformMatrix4fv(program.uniform("Transformation"), 1, true, meshObjects[objectToDraw]->T_pointer);
     glDrawArrays(GL_TRIANGLES, 0, meshObjects[objectToDraw]->VFull.cols());*/
     
     //testing with a cube
@@ -122,6 +219,15 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     // Convert screen position to world coordinates
     double xworld = ((xpos/double(width))*2)-1;
     double yworld = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
+    
+    Eigen::MatrixXf pointTransform = viewTrans->view_A * viewTrans->getM();
+    pointTransform = pointTransform.inverse();
+    Eigen::Vector4f cursorPos(xworld, yworld, 0, 1);
+    cursorPos = pointTransform * cursorPos;
+    xworld = cursorPos.x();
+    yworld = cursorPos.y();
+    
+    std::cout << "mouse at: " << xworld << ", " << yworld << "\n";
 
     // Update the position of the first vertex if the left button is pressed
     /*if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
@@ -169,10 +275,27 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     //VBO.update(V);
 }
 
+double lastx;
+double lasty;
+void hit() {
+    // Get the position of the mouse in the window
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    
+    // Get the size of the window
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    
+    //compute scene position
+    // Convert screen position to world coordinates
+    double xworld = ((xpos/double(width))*2)-1;
+    double yworld = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
+    
+    std::cout << "mouse at: " << xworld << ", " << yworld << "\n";
+}
+
 int main(void)
 {
-    GLFWwindow* window;
-
     // Initialize the library
     if (!glfwInit())
         return -1;
@@ -235,15 +358,18 @@ int main(void)
                     "in vec2 texcoord;"
                     "in vec3 normal;"
                     "uniform mat4 view;"
+                    "uniform mat4 M;"
+                    "uniform mat4 Transformation;"
                     "out vec3 Position;"
                     "out vec2 Texcoord;"
                     "out vec3 Normal;"
                     "void main()"
                     "{"
                     "    vec4 vec4pos = vec4(position[0],position[1],position[2],1.0);"
-                    "    mat4 newM = view;"
+                    "    mat4 newM = view * M * Transformation;"
                     "    vec4 newPos = newM * vec4pos;"
                     "    gl_Position = vec4(newPos.xyz, 1.0);"
+                    //"    gl_Position = vec4(newPos.x * (-1.0), newPos.y, newPos.z * (-1.0), 1.0);"
     
                     "    Position = position;"
                     "    Texcoord = texcoord;"
@@ -293,21 +419,26 @@ int main(void)
     
     glUniform1i(program.uniform("textured"),0);
     
-    viewTrans = new ViewTransformations(window);
+    viewTrans = new ViewTransformations(0,0.5,4);
+    viewTrans->setVisibleWorldlbn(-1.5,-1.5,1.5);
+    viewTrans->setVisibleWorldrtf(1.5,1.5,-1.5);
     viewTrans->updateView();
+    update_pointer(viewTrans->M_pointer, viewTrans->getM());
+    glUniformMatrix4fv(program.uniform("M"), 1, false, viewTrans->M_pointer);
     
     glUniform3f(program.uniform("lightPos"), 1.0f, 4.0f, 2.0f);
     glUniform1f(program.uniform("ambient"), 0.5f);
     
+    //read in object data
     Eigen::Matrix<double, -1, -1, 0, -1, -1> VM;
     Eigen::Matrix<double, -1, -1, 0, -1, -1> TCM;
     Eigen::Matrix<double, -1, -1, 0, -1, -1> NM;
     Eigen::Matrix<int, -1, -1, 0, -1, -1> FM;
     Eigen::Matrix<int, -1, -1, 0, -1, -1> FTCM;
     Eigen::Matrix<int, -1, -1, 0, -1, -1> FNM;
-    for(int i = 0; i < 7; i++){
+    for(int i = 0; i < 6; i++){
         igl::readOBJ("../data/darumaotoshi_obj/darumaotoshi_obj.obj", i, VM, TCM, NM, FM, FTCM, FNM);
-        meshObjects.push_back(new MeshObject(
+        meshObjects.push_back(new Block(
                                              VM.transpose().cast<float>(),
                                              TCM.transpose().cast<float>(),
                                              NM.transpose().cast<float>(),
@@ -315,38 +446,40 @@ int main(void)
                                              FTCM.transpose().cast<float>(),
                                              FNM.transpose().cast<float>()));
     }
+    igl::readOBJ("../data/darumaotoshi_obj/darumaotoshi_obj.obj", 6, VM, TCM, NM, FM, FTCM, FNM);
+    meshObjects.push_back(new Hammer(
+                                    VM.transpose().cast<float>(),
+                                    TCM.transpose().cast<float>(),
+                                    NM.transpose().cast<float>(),
+                                    FM.transpose().cast<float>(),
+                                    FTCM.transpose().cast<float>(),
+                                    FNM.transpose().cast<float>()));
+    
+    //switch the objects at index 1 and 5, since the top block needs a texture added
     MeshObject* temp = meshObjects[5];
     meshObjects[5] = meshObjects[1];
     meshObjects[1] = temp;
-    /*igl::readOBJ("../data/cube.obj", 0, VM, TCM, NM, FM, FTCM, FNM);
-     meshObjects.push_back(new MeshObject(
-     VM.transpose().cast<float>(),
-     TCM.transpose().cast<float>(),
-     NM.transpose().cast<float>(),
-     FM.transpose().cast<float>(),
-     FTCM.transpose().cast<float>(),
-     FNM.transpose().cast<float>()));*/
     
-    //set colors
+    //set colors of bottom 5 blocks blocks
     meshObjects[0]->solidColor << 0.0, 0.5, 0.0;
     meshObjects[1]->solidColor << 1.0, 0.0, 1.0;
     meshObjects[2]->solidColor << 1.0, 1.0, 0.0;
     meshObjects[3]->solidColor << 1.0, 0.0, 0.0;
     meshObjects[4]->solidColor << 0.0, 1.0, 1.0;
     
-    //set textures
+    //texture setup
     std::vector<std::string> textureFiles;
     textureFiles.push_back("../data/darumaotoshi_obj/atama.png");
     textureFiles.push_back("../data/darumaotoshi_obj/hammer_c.JPG");
     std::vector<int> glTextures;
     glTextures.push_back(GL_TEXTURE0);
     glTextures.push_back(GL_TEXTURE1);
-     
+    
+    //set textures of top block and hammer
     GLuint textures[textureFiles.size()];
     glGenTextures(textureFiles.size(), textures);
     int width, height; unsigned char* image;
     for(size_t i = 5; i < meshObjects.size(); i++){
-        //I might have to do this everytime I render??
         glActiveTexture(glTextures[i-5]);
         glBindTexture(GL_TEXTURE_2D, textures[i-5]);
         image = SOIL_load_image(textureFiles[i-5].c_str(), &width, &height, 0, SOIL_LOAD_RGB);
@@ -361,8 +494,8 @@ int main(void)
         meshObjects[i]->textured = 1;
         meshObjects[i]->texIndex = i-5;
     }
-    //
     
+    //for testing adding texture to a specific object
     /*GLuint textures[1];
     glGenTextures(1, textures);
     int width, height; unsigned char* image;
@@ -385,11 +518,36 @@ int main(void)
     meshObjects[5]->textured = 1;
     glUniform1i(program.uniform("tex"), 0);*/
     
+    /*Eigen::MatrixXf TToApply = Eigen::MatrixXf::Identity(4,4);
+    Eigen::MatrixXf transformation(2,2);
+    int degreesToRotate = -90;
+    double alpha = degreesToRotate*3.14159265/180;
+    transformation << cos(alpha), sin(alpha)*(-1.0), sin(alpha), cos(alpha);
+    TToApply.col(1) << 0, transformation.col(0), 0;
+    TToApply.col(2) << 0, transformation.col(1), 0;*/
+    
+    
+    //translate so that the object's barycenter doesn't change
+    /*Eigen::MatrixXf origV(4,selectedObj->V.cols());
+    origV << selectedObj->V, Eigen::MatrixXf::Ones(1,origV.cols());
+    origV = selectedObj->T * origV;
+    Eigen::MatrixXf newV = T*origV;
+    
+    Eigen::Vector4f origBaryCenter = getObjCenter(origV);
+    Eigen::Vector4f newBaryCenter = getObjCenter(newV);
+    newBaryCenter = (newBaryCenter-origBaryCenter)*(-1.0);
+    
+    T.col(3) << newBaryCenter.x(), newBaryCenter.y(), newBaryCenter.z(), 1;*/
+    //meshObjects[6]->transform(TToApply);
+    meshObjects[6]->rotateyz(90);
+    
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
         viewTrans->updateView();
+        updateHammerPos();
+        //hit(window);
         
         // Bind your VAO (not necessary if you have only one)
         VAO.bind();
@@ -404,8 +562,14 @@ int main(void)
 
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        // Enable depth test
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+
+        
+        //draw objects in scene
         drawMeshObjects();
 
         // Swap front and back buffers

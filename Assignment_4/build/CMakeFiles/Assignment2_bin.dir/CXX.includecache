@@ -1069,6 +1069,8 @@ Eigen/Dense
 -
 math.h
 -
+limits
+-
 
 /Users/ericapeng/Documents/Computer Graphics/Assignments/Assignment4/Assignment_4/src/Helpers.h
 string
@@ -1102,5 +1104,9 @@ chrono
 iostream
 -
 vector
+-
+Eigen/Geometry
+-
+Eigen/LU
 -
 

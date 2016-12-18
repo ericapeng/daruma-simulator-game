@@ -7,6 +7,7 @@
 #include <cassert>
 #include <Eigen/Dense>
 #include <math.h>
+#include <limits>
 
 void VertexArrayObject::init()
 {
@@ -211,13 +212,29 @@ void update_pointer(float* M_p, Eigen::MatrixXf M){
     }
 }
 
+Eigen::VectorXf getObjCenter(Eigen::MatrixXf V){
+    if(V.rows() == 4){
+        Eigen::Vector4f sum(0,0,0,0);
+        for(int i = 0; i < V.cols(); i++)
+            sum = sum + V.col(i);
+        sum = sum/V.cols();
+        return sum;
+    }
+    
+    Eigen::Vector3f sum(0,0,0);
+    for(int i = 0; i < V.cols(); i++)
+        sum = sum + V.col(i);
+    sum = sum/V.cols();
+    return sum;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //MESHOBJECTS IMPLEMENTED METHODS
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : V(V), TC(TC), N(N), F(F), FTC(FTC), FN(FN), textured(0), texIndex(-1), solidColor(0,0,0)
+MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : V(V), TC(TC), N(N), F(F), FTC(FTC), FN(FN), textured(0), texIndex(-1), solidColor(0,0,0), T(4,4), currT(4,4)
 {
     trianglify(F, V);
     trianglify(FTC, TC);
@@ -238,9 +255,6 @@ MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N,
         std::cout << "NUMBER OF FACES DOES NOT MATCH FOR F, FTC, AND FN: \n";
         std::cout << "F.cols(): " << F.cols() << ", FTC.cols(): " << FTC.cols() << ", FN.cols(): " << FN.cols() << "\n";
     }
-    
-    /*std::cout << "vertices: \n" << V;
-    std::cout << "\nfaces: \n" << F << "\n";*/
     int computedI = 0;
     for(int i = 0; i < F.cols(); i++) {
         computedI = i*3;
@@ -248,14 +262,11 @@ MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N,
             if(F(j,i) > V.cols() || F(j,i) < 0){
                 std::cout << F(j,i) << " > or < " << V.cols() << "\n";
             }
-            /*std::cout << "generating a triangle from column " << i << " of F, which looks like: ";
-            std::cout << F(0,i) << ", " << F(1,i) << ", " << F(2,i) << "\n";*/
             VFinal.col(computedI+j) << V.col(F(j,i));
             TCFinal.col(computedI+j) << TC.col(FTC(j,i));
             NFinal.col(computedI+j) << N.col(FN(j,i));
         }
     }
-    //std::cout << VFinal.transpose() << "\n";
     VFull = VFinal;
     TCFull = TCFinal;
     NFull = NFinal;
@@ -264,9 +275,56 @@ MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N,
     TCBO->update(TCFinal);
     NBO->update(NFinal);
     
-    /*VBO = new VertexBufferObject();
-    VBO->init();
-    VBO->update(V);*/
+    T << Eigen::MatrixXf::Identity(4,4);
+    T_pointer = new float[16];
+    update_pointer(T_pointer, T);
+    currT << Eigen::MatrixXf::Identity(4,4);
+    
+    center = getObjCenter(V);
+}
+
+void MeshObject::transform(Eigen::MatrixXf newT) {
+    currT = newT * T;
+    Eigen::Vector4f fullCenter(center.x(), center.y(), center.z(), 1);
+    update_pointer(T_pointer, currT);
+}
+
+void MeshObject::translate(Eigen::Vector3f from, Eigen::Vector3f to) {
+    Eigen::MatrixXf TToApply = Eigen::MatrixXf::Identity(4,4);
+    Eigen::Vector3f newBaryCenter = (to - from);
+    TToApply.col(3) << newBaryCenter.x(), newBaryCenter.y(), 0, 1;
+    transform(TToApply);
+}
+
+//permanently effects T
+void MeshObject::rotateyz(int degrees) {
+    Eigen::MatrixXf TToApply = Eigen::MatrixXf::Identity(4,4);
+    Eigen::MatrixXf transformation(2,2);
+    int degreesToRotate = -90;
+    double alpha = degreesToRotate*3.14159265/180;
+    transformation << cos(alpha), sin(alpha)*(-1.0), sin(alpha), cos(alpha);
+    
+    TToApply.col(1) << 0, transformation.col(0), 0;
+    TToApply.col(2) << 0, transformation.col(1), 0;
+    
+    //translate so that the object's barycenter doesn't change
+    Eigen::MatrixXf origV(4,V.cols());
+    origV << V, Eigen::MatrixXf::Ones(1,origV.cols());
+    origV = T * origV;
+    Eigen::MatrixXf newV = TToApply * origV;
+     
+    Eigen::Vector4f origBaryCenter = getObjCenter(origV);
+    Eigen::Vector4f newBaryCenter = getObjCenter(newV);
+    newBaryCenter = (newBaryCenter-origBaryCenter)*(-1.0);
+    
+    TToApply.col(3) << newBaryCenter.x(), newBaryCenter.y(), newBaryCenter.z(), 1;
+    
+    T = TToApply * T;
+    update_pointer(T_pointer, currT);
+    
+    Eigen::Vector4f fullCenter(center.x(), center.y(), center.z(), 1);
+    fullCenter = T * fullCenter;
+    center << fullCenter.x(), fullCenter.y(), fullCenter.z();
 }
 
 Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Verts)
@@ -275,8 +333,6 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
         std::cout << "ERROR: Can only trianglify face matrices made up of four vertices per face.\n";
         return M;
     }
-    
-    //std::cout << Verts.transpose() << "\n";
     
     Eigen::MatrixXf newM(3, M.cols()*2);
     int a;
@@ -291,11 +347,7 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
     Eigen::Vector3f end;
     for(int i = 0; i < M.cols(); i++){
         a = M(0,i);
-        //std::cout << "THE COLUMN " << i << " TO EVAL IS:\n" << M.col(i) << "\n";
-        //calculate the diagonal vector
         for(int j = 1; j < 4; j++){
-            //std::cout << "\nvect1: \n" << Verts.col(M(j,i)) << "at M(j,i) = " << M(j,i);
-            //std::cout << "\nvect2: \n" << Verts.col(a) << "at a = " << a;
             if(Verts.rows() == 2){
                 end << Verts.col(M(j,i)), 0;
                 start << Verts.col(a), 0;
@@ -305,16 +357,11 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
                 start = Verts.col(a);
             }
             rays.push_back((end-start).normalized());
-            //std::cout << "ray[" << j-1 << "]= " << rays[j-1] << "\n";
         }
         
         angles.push_back(acos(rays[0].dot(rays[1])));
         angles.push_back(acos(rays[0].dot(rays[2])));
         angles.push_back(acos(rays[1].dot(rays[2])));
-        
-        /*std::cout << "angles[0] is " << angles[0];
-        std::cout << "; angles[1] is " << angles[1];
-        std::cout << "; angles[2] is " << angles[2] << "\n";*/
         
         //if the vector from M(0,i) to M(2,i) is in the middle
         if(angles[1] > angles[0] && angles[1] > angles[2]){
@@ -343,13 +390,7 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
         newM.col(computedI+1) << b, d, a;
     }
     
-    //M.resize(3, M.cols()*2);
-    //for(int i = 0; i < newM.cols(); i++){
-    //    M.col(i) << newM(0,i), newM(1,i), newM(2,i);
-    //}
     M = newM;
-    
-    //std::cout << "\n\nFIN\n\n";
     return newM;
 }
 
@@ -360,9 +401,44 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN) {
-
+Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN), xLeftBound(std::numeric_limits<double>::max()), xRightBound(std::numeric_limits<double>::min()) {
+    //determine xLeftBound and xRightBound
+    /*double xToCheck = 0;
+    for(int i = 0; i < V.cols(); i++) {
+        xToCheck = V(0,i);
+        if(xToCheck > xRightBound)
+            xRightBound = xToCheck;
+        if(xToCheck < xLeftBound)
+            xLeftBound = xToCheck;
+    }*/
+    //std::cout << "xLeftBound: " << xLeftBound << ", xRightBound: " << xRightBound << "\n";
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//BLOCK IMPLEMENTED METHODS
+//
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+Hammer::Hammer(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN) {
+    
+    //I wonder how long it is...#include <Eigen/Geometry>
+    /*double xToCheck = 0;
+    double yTopBound = std::numeric_limits<double>::min();
+    double yBottomBound = std::numeric_limits<double>::max();
+    for(int i = 0; i < V.cols(); i++) {
+        xToCheck = V(0,i);
+        if(xToCheck > yTopBound)
+            yTopBound = xToCheck;
+        if(xToCheck < yBottomBound)
+            yBottomBound = xToCheck;
+    }
+    std::cout << "yBottomBound: " << yBottomBound << ", yTopBound: " << yTopBound << "\n";*/
+    //yBottomBound: -0.3102, yTopBound: 0.3102
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -460,10 +536,6 @@ bool igl::readOBJ(
                 tcOffset.push_back(tcCount);
                 lastType = f;
             }
-            /*if(type == f && lastType == v)
-            {
-                lastType = f;
-            }*/
 
             
             if(currPass == pass){
@@ -754,14 +826,6 @@ IGL_INLINE int igl::min_size(const std::vector<T> & V)
         {
             min_size = size;
         }else{
-            if(min_size > size){
-                std::cout << "new min_size at: " << iter-V.begin() << " of value " << size << "\n";
-                T babybug = *iter;
-                for(size_t i = 0; i < babybug.size(); i++) {
-                    std::cout << babybug[i] << ", ";
-                }
-                std::cout << "\n";
-            }
             min_size = (min_size < size ? min_size : size);
         }
     }
