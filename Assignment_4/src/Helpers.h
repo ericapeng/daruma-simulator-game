@@ -182,7 +182,7 @@ public:
           Eigen::MatrixXf FTC,
           Eigen::MatrixXf FN);
     
-    void hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel);
+    void hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel, int cheatMode);
     void updatePos();
     double getTransformedBound(double bound);
     void reset();

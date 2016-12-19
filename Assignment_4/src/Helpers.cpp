@@ -415,9 +415,11 @@ Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::Ma
     t_last_update = std::chrono::high_resolution_clock::now();
 }
 
-void Block::hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel) {
+void Block::hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel, int cheatMode) {
     std::cout << "hit acceleration: " << currAccel << "\n";
     std::cout << "state: " << state << "\n";
+    if(cheatMode)
+        currAccel = minTargetAccel;
     if(state == "base" || (state == "slide" && velocity == 0)){
         double secondToLastVelocity = getPreviousFromDeque(cursorXVelocities,cursorXVelocities.back());
         if(std::abs(currAccel) < minTargetAccel || std::abs(secondToLastVelocity) < std::abs(cursorXVelocities.back())) {

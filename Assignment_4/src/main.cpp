@@ -36,6 +36,9 @@ double currAcceleration;
 
 double frictionCoeff;
 
+int cheatMode;
+
+
 class ViewTransformations
 {
 public:
@@ -267,11 +270,11 @@ void checkForHit() {
         xMaxBound = currBlock->getTransformed(*(new Eigen::Vector3f(currBlock->xMaxBound,0,0))).x();
         if(leftFace.y() < currBlock->yMaxBound && leftFace.y() > currBlock->yMinBound && currBlock->state == "base"){
             if(leftFace.x() <= xMaxBound && leftFace.x() >= xMinBound){
-                currBlock->hit(cursorXVelocities, cursorXSamples.back()+5, leftFace, currAcceleration);
+                currBlock->hit(cursorXVelocities, cursorXSamples.back()+5, leftFace, currAcceleration, cheatMode);
                 //std::cout << "hit block " << i << " \n";
             }
             else if(rightFace.x() >= xMinBound && rightFace.x() <= xMaxBound) {
-                currBlock->hit(cursorXVelocities, cursorXSamples.back()-5, rightFace, currAcceleration);
+                currBlock->hit(cursorXVelocities, cursorXSamples.back()-5, rightFace, currAcceleration, cheatMode);
             }
         }
     }
@@ -324,6 +327,7 @@ void resetGame(){
     }
     ((Block*)(meshObjects[0]))->state = "base";
     
+    meshObjects[5]->texIndex = 0;
 }
 
 int shift_on = 0;
@@ -347,8 +351,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             if(action == GLFW_PRESS)
                 viewTrans->updateView(0);
             break;
-        case  GLFW_KEY_SPACE:
+        case GLFW_KEY_SPACE:
             resetGame();
+            break;
+        case GLFW_KEY_C:
+            if(action == GLFW_PRESS){
+                if(!cheatMode)
+                    cheatMode = 1;
+                else
+                    cheatMode = 0;
+            }
             break;
         default:
             break;
@@ -394,6 +406,17 @@ void initPhysicalLaws(double staticFriction = 0.4, double leniency = 1, double m
     }
     
     ((Block*)(meshObjects[0]))->state = "base";
+}
+
+//returns 1 if the player won, -1 if the player lost, and 0 if the game is not over yet
+int gameState() {
+    if(((Block*)(meshObjects[5]))->state == "base")
+        return 1;
+    for(int i = 0; i < 6; i++) {
+        if(((Block*)(meshObjects[i]))->state == "boo")
+            return -1;
+    }
+    return 0;
 }
 
 int main(void)
@@ -524,6 +547,7 @@ int main(void)
     
     //coefficient of clean wood
     //frictionCoeff = 0.25;
+    cheatMode = 0;
     
     viewTrans = new ViewTransformations(0,0.5,4);
     //viewTrans = new ViewTransformations(1,1,4);
@@ -596,15 +620,19 @@ int main(void)
     std::vector<std::string> textureFiles;
     textureFiles.push_back("../data/darumaotoshi_obj/atama.png");
     textureFiles.push_back("../data/darumaotoshi_obj/hammer_c.JPG");
+    textureFiles.push_back("../data/darumaotoshi_obj/white_daruma.jpg");
+    textureFiles.push_back("../data/darumaotoshi_obj/gudetama.jpg");
     std::vector<int> glTextures;
     glTextures.push_back(GL_TEXTURE0);
     glTextures.push_back(GL_TEXTURE1);
+    glTextures.push_back(GL_TEXTURE2);
+    glTextures.push_back(GL_TEXTURE3);
     
     //set textures of top block and hammer
     GLuint textures[textureFiles.size()];
     glGenTextures(textureFiles.size(), textures);
     int width, height; unsigned char* image;
-    for(size_t i = 5; i < meshObjects.size(); i++){
+    for(size_t i = 5; i < meshObjects.size()+2; i++){
         glActiveTexture(glTextures[i-5]);
         glBindTexture(GL_TEXTURE_2D, textures[i-5]);
         image = SOIL_load_image(textureFiles[i-5].c_str(), &width, &height, 0, SOIL_LOAD_RGB);
@@ -616,8 +644,10 @@ int main(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         
-        meshObjects[i]->textured = 1;
-        meshObjects[i]->texIndex = i-5;
+        if(i <= meshObjects.size()-1){
+            meshObjects[i]->textured = 1;
+            meshObjects[i]->texIndex = i-5;
+        }
     }
     
     //for testing adding texture to a specific object
@@ -647,7 +677,8 @@ int main(void)
     
     initPhysicalLaws();
     
-
+    int immediateGameState = 0;
+    
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
@@ -675,6 +706,13 @@ int main(void)
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
 
+        immediateGameState = gameState();
+        if(immediateGameState == 1){
+            meshObjects[5]->texIndex = 2;
+        }
+        else if(immediateGameState == -1) {
+            meshObjects[5]->texIndex = 3;
+        }
         
         //draw objects in scene
         drawMeshObjects();
