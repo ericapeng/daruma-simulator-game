@@ -18,6 +18,9 @@
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 
+#define GRAVITATIONALACCEL 9.80665
+#define METERSPERWORLDUNITS 0.0518226   //calculated on the assumption that the diameter of a block is 1.5 inches
+
 // VertexBufferObject wrapper
 Program program;
 GLFWwindow* window;
@@ -29,6 +32,9 @@ float* view_A_pointer = new float[16];
 std::chrono::time_point<std::chrono::high_resolution_clock> t_last;
 std::deque<double> cursorXVelocities;
 std::deque<double> cursorXSamples;
+double currAcceleration;
+
+double frictionCoeff;
 
 class ViewTransformations
 {
@@ -217,6 +223,7 @@ void sampleCursorVel() {
     float interval = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_last).count();
     t_last = t_now;
     Eigen::Vector2f cursorPos = getCursorPosInWorld();
+    double lastMeasuredVelocity;
     
     if(cursorXSamples.size() == 0){
         cursorXSamples.push_back(cursorPos.x());
@@ -226,8 +233,18 @@ void sampleCursorVel() {
             cursorXVelocities.pop_front();
             cursorXSamples.pop_front();
         }
+        if(cursorXVelocities.size() > 1)
+            lastMeasuredVelocity = cursorXVelocities.back();
         cursorXVelocities.push_back((cursorPos.x() - cursorXSamples.back())/interval);
         cursorXSamples.push_back(cursorPos.x());
+        
+        if(cursorXVelocities.size() > 1){
+            //might want to display this to the screen
+            currAcceleration = ((cursorXVelocities.back() - lastMeasuredVelocity)/interval)*METERSPERWORLDUNITS;
+            /*if(cursorXVelocities.back() != lastMeasuredVelocity)
+                std::cout << "curr acceleration: " << currAcceleration <<"\n";*/
+        }
+            
     }
     
     /*std::cout << "cursorXVelocities: ";
@@ -248,11 +265,14 @@ void checkForHit() {
         currBlock = (Block*)(meshObjects[i]);
         xMinBound = currBlock->getTransformed(*(new Eigen::Vector3f(currBlock->xMinBound,0,0))).x();
         xMaxBound = currBlock->getTransformed(*(new Eigen::Vector3f(currBlock->xMaxBound,0,0))).x();
-        if(leftFace.y() < currBlock->yMaxBound && leftFace.y() > currBlock->yMinBound){
-            if(leftFace.x() <= xMaxBound && leftFace.x() >= xMinBound)
-                currBlock->hit(cursorXVelocities);
-            else if(rightFace.x() >= xMinBound && rightFace.x() <= xMaxBound)
-                currBlock->hit(cursorXVelocities);
+        if(leftFace.y() < currBlock->yMaxBound && leftFace.y() > currBlock->yMinBound && currBlock->state == "base"){
+            if(leftFace.x() <= xMaxBound && leftFace.x() >= xMinBound){
+                currBlock->hit(cursorXVelocities, cursorXSamples.back()+5, leftFace, currAcceleration);
+                //std::cout << "hit block " << i << " \n";
+            }
+            else if(rightFace.x() >= xMinBound && rightFace.x() <= xMaxBound) {
+                currBlock->hit(cursorXVelocities, cursorXSamples.back()-5, rightFace, currAcceleration);
+            }
         }
     }
 }
@@ -322,12 +342,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case  GLFW_KEY_1:
             //V.col(0) << -0.5,  0.5;
             break;
-        case GLFW_KEY_2:
-            //V.col(0) << 0,  0.5;
-            break;
-        case  GLFW_KEY_3:
-            //V.col(0) << 0.5,  0.5;
-            break;
         default:
             break;
     }
@@ -353,6 +367,25 @@ void hit() {
     double yworld = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
     
     std::cout << "mouse at: " << xworld << ", " << yworld << "\n";
+}
+
+void initPhysicalLaws(double staticFriction = 0.25, double leniency = 0.5, double mass = 0.035) {
+    frictionCoeff = staticFriction;
+    
+    double fg = mass * GRAVITATIONALACCEL;
+    double maxFrictionalForce = fg * frictionCoeff;
+    double targetAccel = maxFrictionalForce / mass;
+    std::cout << "target acceleration: " << targetAccel << "m/s^2 \n";
+    
+    double wuPerMeters = 1.5 / (0.7352 * 39.3701);
+    std::cout << "wuPerMeters: " << wuPerMeters << "\n";
+    
+    for(int i = 0; i < 6; i++) {
+        ((Block*)(meshObjects[i]))->minTargetAccel = targetAccel - leniency;
+        ((Block*)(meshObjects[i]))->maxTargetAccel = targetAccel + leniency;
+    }
+    
+    ((Block*)(meshObjects[0]))->state = "base";
 }
 
 int main(void)
@@ -481,6 +514,9 @@ int main(void)
     
     glUniform1i(program.uniform("textured"),0);
     
+    //coefficient of clean wood
+    //frictionCoeff = 0.25;
+    
     viewTrans = new ViewTransformations(0,0.5,4);
     //viewTrans = new ViewTransformations(1,1,4);
     //viewTrans = new ViewTransformations(4,0,0);
@@ -525,6 +561,21 @@ int main(void)
     MeshObject* temp = meshObjects[5];
     meshObjects[5] = meshObjects[1];
     meshObjects[1] = temp;
+    
+    //reorder blocks so that they are from bottom to top in array
+    for(size_t i = 1; i < 4; i++) {
+        temp = meshObjects[i];
+        meshObjects[i] = meshObjects[i+1];
+        meshObjects[i+1] = temp;
+    }
+    
+    //init each block's below and above pointers
+    ((Block*)(meshObjects[0]))->below = (Block*)nullptr;
+    for(int i = 0; i < 5; i++) {
+        ((Block*)(meshObjects[i]))->above = ((Block*)(meshObjects[i+1]));
+        ((Block*)(meshObjects[i+1]))->below = ((Block*)(meshObjects[i]));
+    }
+    ((Block*)(meshObjects[5]))->above = (Block*)nullptr;
     
     //set colors of bottom 5 blocks blocks
     meshObjects[0]->solidColor << 0.0, 0.5, 0.0;
@@ -586,6 +637,8 @@ int main(void)
     
     ((Hammer*)meshObjects[6])->initialState(90);
     
+    initPhysicalLaws();
+    
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
@@ -600,28 +653,11 @@ int main(void)
             ((Block*)(meshObjects[i]))->updatePos();
         }
         
-        //hit(window);
-        
         // Bind your VAO (not necessary if you have only one)
         VAO.bind();
 
         // Bind your program
         program.bind();
-
-        // Set the uniform value depending on the time difference
-        /*auto t_now = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-        //time is in seconds
-        //every 5 milliseconds, take a sample of the mouse's location
-        if((int)(time*1000) % 5 == 0){
-            std::cout << "The time is " << time <<  " | " << (int)(time*1000) << "\n";
-            if(mouseXSamples.size() < 3)
-                mouseXSamples.push_back();
-        }*/
-        //glUniform3f(program.uniform("triangleColor"), (float)(sin(time * 4.0f) + 1.0f) / 2.0f, 0.0f, 0.0f);
-        //sampleCursorVel();
-        
-        //checkForHit();
 
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);

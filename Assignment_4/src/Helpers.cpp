@@ -228,6 +228,14 @@ Eigen::VectorXf getObjCenter(Eigen::MatrixXf V){
     return sum;
 }
 
+double getPreviousFromDeque(std::deque<double> queue, double next) {
+    for(std::deque<double>::iterator i = queue.begin(); i < queue.end(); i++){
+        if(*(i+1) == next)
+            return *i;
+    }
+    return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //MESHOBJECTS IMPLEMENTED METHODS
@@ -376,7 +384,7 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN), xMinBound(std::numeric_limits<double>::max()), xMaxBound(std::numeric_limits<double>::min()), yMaxBound(std::numeric_limits<double>::min()), yMinBound(std::numeric_limits<double>::max()), velocity(0) {
+Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::MatrixXf F, Eigen::MatrixXf FTC, Eigen::MatrixXf FN) : MeshObject(V,TC,N,F,FTC,FN), xMinBound(std::numeric_limits<double>::max()), xMaxBound(std::numeric_limits<double>::min()), yMaxBound(std::numeric_limits<double>::min()), yMinBound(std::numeric_limits<double>::max()), velocity(0), state("static") {
     //determine xLeftBound and xRightBound
     double xToCheck = 0;
     double yToCheck = 0;
@@ -393,24 +401,118 @@ Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::Ma
         if(yToCheck < yMinBound)
             yMinBound = yToCheck;
     }
-    //std::cout << "yMaxBound: " << yMaxBound << ", yMinBound: " << yMinBound << "\n";
+    std::cout << "yMaxBound: " << yMaxBound << ", yMinBound: " << yMinBound << "\n";
     
     t_last_update = std::chrono::high_resolution_clock::now();
 }
 
-void Block::hit(std::deque<double> cursorXVelocities) {
-    if(std::abs(cursorXVelocities.back()) > std::abs(velocity))
-        velocity = cursorXVelocities.back();
+void Block::hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel) {
+    std::cout << "hit acceleration: " << currAccel << "\n";
+    std::cout << "state: " << state << "\n";
+    //currAccel = minTargetAccel;
+    //if(state != "slide" || state != "fall"){
+    if(state == "base" || (state == "slide" && velocity == 0)){
+        double secondToLastVelocity = getPreviousFromDeque(cursorXVelocities,cursorXVelocities.back());
+        if(std::abs(currAccel) < minTargetAccel || std::abs(secondToLastVelocity) < std::abs(cursorXVelocities.back())) {
+            if(std::abs(cursorX-xMaxBound) < std::abs(cursorX-xMinBound)){
+                currT(0,3) = hammerFace.x() - xMaxBound;
+                std::cout << "pushing left\n";
+            }
+            else{
+                currT(0,3) = hammerFace.x() - xMinBound;
+                std::cout << "pushing right\n";
+            }
+            state = "push_base";
+            std::cout << "\n\n\nLESS THAN TARGET ACCEL ZONE\n\n\n";
+        }
+        else if(std::abs(currAccel) >= minTargetAccel && std::abs(currAccel) <= maxTargetAccel){
+            if(std::abs(cursorXVelocities.back()) > std::abs(velocity))
+                //velocity = cursorXVelocities.back();
+                velocity = secondToLastVelocity;
+            state = "slide";
+            std::cout << "\n\n\nIN TARGET ACCEL ZONE\n\n\n";
+        }
+        else {
+            //state = "fall";
+            std::cout << "BOO, YOU LOST\n";
+            state = "boo";
+        }
+    }
+    
 }
 
 void Block::updatePos() {
     auto t_now = std::chrono::high_resolution_clock::now();
-    float interval = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_last_update).count();
+    //don't need to do anything if static
+    if(state == "static"){
+        //std::cout << "Hi, I'm static\n";
+    }
     
-    currT(0,3) = currT(0,3) + velocity*interval;
-    transform(currT);
+    //moves current block and all blocks above it
+    else if(state == "push" || state == "push_base"){
+        transform(currT);
+        if(above != nullptr){
+            above->state = "push";
+            above->currT = currT;
+            above->updatePos();
+        }
+        if(state == "push_base")
+            state = "base";
+    }
     
+    //slides the current block and makes all blocks above it fall
+    else if(state == "slide"){
+        float interval = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_last_update).count();
+        
+        currT(0,3) = currT(0,3) + velocity*interval;
+        transform(currT);
+        
+        double width = xMaxBound - xMinBound;
+        double newXMin = getTransformed(*(new Eigen::Vector3f(0,xMinBound,0))).x();
+        if(std::abs(newXMin - xMinBound) > width/2 && above != nullptr && above->yMinBound != 0.0015)
+            above->state = "fall";
+    }
+    
+    else if(state == "restack"){
+        std::cout << "restacked!\n";
+        state = "static";
+        velocity = 0;
+        
+        if(above != nullptr)
+            above->state = "restack";
+    }
+    
+    else if(state == "fall"){
+        std::cout << "FALLING(FORYOU HAHA GET IT)\n";
+        float interval = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_last_update).count();
+        //divided gravity by half for visibility purposes
+        velocity = (interval * GRAVITATIONALACCEL * -0.2)/METERSPERWORLDUNITS + velocity;
+        
+        currT(1,3) = currT(1,3) + velocity*interval;
+        if(getTransformed(*(new Eigen::Vector3f(0,yMinBound,0))).y() <= 0.0015){
+            state = "base";
+            velocity = 0;
+            currT(1,3) = 0.0015 - yMinBound;
+            //update the ybounds and currT so that this is now the block is now the bottom block
+            double height = yMaxBound - yMinBound;
+            yMinBound = 0.0015;
+            yMaxBound = yMinBound + height;
+            std::cout << "BASED.\n";
+            
+            if(above != nullptr)
+                above->state = "restack";
+        }
+        else{
+            transform(currT);
+            
+            if(above != nullptr){
+                above->state = "fall";
+                //std::cout << "THE REST, FALL PLS\n";
+            }
+        }
+    }
     t_last_update = t_now;
+    
 }
 
 

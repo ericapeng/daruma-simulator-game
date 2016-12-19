@@ -9,6 +9,9 @@
 #include <chrono>
 #include <cmath>
 
+#define GRAVITATIONALACCEL 9.80665
+#define METERSPERWORLDUNITS 0.0518226   //calculated on the assumption that the diameter of a block is 1.5 inches
+
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -124,6 +127,7 @@ void _check_gl_error(const char *file, int line);
 //convert eigen matrix to dynamic array to bind the uniform
 void update_pointer(float* M_p, Eigen::MatrixXf M);
 Eigen::VectorXf getObjCenter(Eigen::MatrixXf V);
+double getPreviousFromDeque(std::deque<double> queue, double next);
 
 class MeshObject
 {
@@ -177,7 +181,7 @@ public:
           Eigen::MatrixXf FTC,
           Eigen::MatrixXf FN);
     
-    void hit(std::deque<double> cursorXVelocities);
+    void hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel);
     void updatePos();
     
     double xMaxBound;
@@ -187,6 +191,13 @@ public:
     
     std::chrono::time_point<std::chrono::high_resolution_clock> t_last_update;
     double velocity;
+    
+    std::string state;  //options: "push", "slide", "fall", "static"
+    double minTargetAccel;
+    double maxTargetAccel;
+    
+    Block* above;
+    Block* below;
 private:
     
 };
