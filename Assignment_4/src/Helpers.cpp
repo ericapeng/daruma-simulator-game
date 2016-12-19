@@ -377,6 +377,12 @@ Eigen::MatrixXf MeshObject::trianglify(Eigen::MatrixXf& M, Eigen::MatrixXf& Vert
     return newM;
 }
 
+void MeshObject::reset() {
+    T = Eigen::MatrixXf::Identity(4,4);
+    currT = Eigen::MatrixXf::Identity(4,4);
+    update_pointer(T_pointer, currT);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -403,14 +409,15 @@ Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::Ma
     }
     std::cout << "yMaxBound: " << yMaxBound << ", yMinBound: " << yMinBound << "\n";
     
+    origyMinBound = yMinBound;
+    origyMaxBound = yMaxBound;
+    
     t_last_update = std::chrono::high_resolution_clock::now();
 }
 
 void Block::hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel) {
     std::cout << "hit acceleration: " << currAccel << "\n";
     std::cout << "state: " << state << "\n";
-    //currAccel = minTargetAccel;
-    //if(state != "slide" || state != "fall"){
     if(state == "base" || (state == "slide" && velocity == 0)){
         double secondToLastVelocity = getPreviousFromDeque(cursorXVelocities,cursorXVelocities.back());
         if(std::abs(currAccel) < minTargetAccel || std::abs(secondToLastVelocity) < std::abs(cursorXVelocities.back())) {
@@ -512,7 +519,19 @@ void Block::updatePos() {
         }
     }
     t_last_update = t_now;
+}
+
+double Block::getTransformedBound(double bound) {
+    return getTransformed(*(new Eigen::Vector3f(0,bound,0))).x();
+}
+
+void Block::reset() {
+    MeshObject::reset();
     
+    state = "static";
+    velocity = 0;
+    yMaxBound = origyMaxBound;
+    yMinBound = origyMinBound;
 }
 
 

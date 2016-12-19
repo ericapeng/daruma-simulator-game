@@ -142,6 +142,7 @@ public:
     void transform(Eigen::MatrixXf newT);
     void translate(Eigen::Vector3f from, Eigen::Vector3f to);
     Eigen::Vector3f getTransformed(Eigen::Vector3f attrib);
+    void reset();
     
     Eigen::MatrixXf V;
     Eigen::MatrixXf TC;
@@ -183,16 +184,20 @@ public:
     
     void hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel);
     void updatePos();
+    double getTransformedBound(double bound);
+    void reset();
     
     double xMaxBound;
     double xMinBound;
     double yMaxBound;
     double yMinBound;
+    double origyMaxBound;
+    double origyMinBound;
     
     std::chrono::time_point<std::chrono::high_resolution_clock> t_last_update;
     double velocity;
     
-    std::string state;  //options: "push", "slide", "fall", "static"
+    std::string state;  //options: "push", "slide", "fall", "static", "push_base", "base", "restack"
     double minTargetAccel;
     double maxTargetAccel;
     

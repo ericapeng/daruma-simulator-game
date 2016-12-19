@@ -318,6 +318,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     checkForHit();
 }
 
+void resetGame(){
+    for(int i = 0; i < 6; i++) {
+        ((Block*)(meshObjects[i]))->reset();
+    }
+    ((Block*)(meshObjects[0]))->state = "base";
+    
+}
+
 int shift_on = 0;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -339,8 +347,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             if(action == GLFW_PRESS)
                 viewTrans->updateView(0);
             break;
-        case  GLFW_KEY_1:
-            //V.col(0) << -0.5,  0.5;
+        case  GLFW_KEY_SPACE:
+            resetGame();
             break;
         default:
             break;
@@ -369,7 +377,7 @@ void hit() {
     std::cout << "mouse at: " << xworld << ", " << yworld << "\n";
 }
 
-void initPhysicalLaws(double staticFriction = 0.25, double leniency = 0.5, double mass = 0.035) {
+void initPhysicalLaws(double staticFriction = 0.4, double leniency = 1, double mass = 0.035) {
     frictionCoeff = staticFriction;
     
     double fg = mass * GRAVITATIONALACCEL;
