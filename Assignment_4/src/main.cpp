@@ -73,7 +73,6 @@ public:
         setView();
     }
     
-    //PRAYING AFTER THIS LINE==================================
     void transformCamPos(Eigen::Vector3f translation){
         camPos = camPos+translation;
     }
@@ -197,27 +196,6 @@ void drawMeshObjects() {
         glUniformMatrix4fv(program.uniform("Transformation"), 1, true, object->T_pointer);
         glDrawArrays(GL_TRIANGLES, 0, object->VFull.cols());
     }
-    /*int objectToDraw = 6;
-    program.bindVertexAttribArray("position",*(meshObjects[objectToDraw]->VBO));
-    program.bindVertexAttribArray("texcoord",*(meshObjects[objectToDraw]->TCBO));
-    program.bindVertexAttribArray("normal",*(meshObjects[objectToDraw]->NBO));
-    glUniform1i(program.uniform("textured"),meshObjects[objectToDraw]->textured);
-    if(meshObjects[objectToDraw]->textured)
-        glUniform1i(program.uniform("tex"), meshObjects[objectToDraw]->texIndex);
-    else
-        glUniform3f(program.uniform("triangleColor"), meshObjects[objectToDraw]->solidColor.x(), meshObjects[objectToDraw]->solidColor.y(), meshObjects[objectToDraw]->solidColor.z());
-    glUniformMatrix4fv(program.uniform("Transformation"), 1, true, meshObjects[objectToDraw]->T_pointer);
-    glDrawArrays(GL_TRIANGLES, 0, meshObjects[objectToDraw]->VFull.cols());*/
-    
-    //testing with a cube
-    /*Eigen::MatrixXf triangle(3,3);
-    for(int i = 0; i < meshObjects[objectToDraw]->VFull.cols(); i+=3){
-        triangle.col(0) << meshObjects[objectToDraw]->VFull.col(i);
-        triangle.col(1) << meshObjects[objectToDraw]->VFull.col(i+1);
-        triangle.col(2) << meshObjects[objectToDraw]->VFull.col(i+2);
-        //std::cout << "\n" << triangle << "\n";
-        glDrawArrays(GL_LINE_LOOP, i, 3);
-    }*/
 }
 
 void sampleCursorVel() {
@@ -242,18 +220,10 @@ void sampleCursorVel() {
         cursorXSamples.push_back(cursorPos.x());
         
         if(cursorXVelocities.size() > 1){
-            //might want to display this to the screen
             currAcceleration = ((cursorXVelocities.back() - lastMeasuredVelocity)/interval)*METERSPERWORLDUNITS;
-            /*if(cursorXVelocities.back() != lastMeasuredVelocity)
-                std::cout << "curr acceleration: " << currAcceleration <<"\n";*/
         }
             
     }
-    
-    /*std::cout << "cursorXVelocities: ";
-    for(std::deque<double>::iterator i = cursorXVelocities.begin(); i < cursorXVelocities.end(); i++)
-        std::cout << *i << ", ";
-    std::cout << "\n";*/
 }
 
 void checkForHit() {
@@ -280,47 +250,6 @@ void checkForHit() {
     }
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-    // Get the position of the mouse in the window
-    /*double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
-
-    // Get the size of the window
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-
-    // Convert screen position to world coordinates
-    double xworld = ((xpos/double(width))*2)-1;
-    double yworld = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
-    
-    Eigen::MatrixXf pointTransform = viewTrans->view_A * viewTrans->getM();
-    pointTransform = pointTransform.inverse();
-    Eigen::Vector4f cursorPos(xworld, yworld, 0, 1);
-    cursorPos = pointTransform * cursorPos;
-    xworld = cursorPos.x();
-    yworld = cursorPos.y();
-    
-    std::cout << "mouse at: " << xworld << ", " << yworld << "\n";*/
-
-    // Update the position of the first vertex if the left button is pressed
-    /*if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-        V.col(0) << xworld, yworld;*/
-
-    // Upload the change to the GPU
-    //VBO.update(V);
-    
-    if(action == GLFW_PRESS)
-        return;
-    
-    Hammer* hammer = (Hammer*)(meshObjects[6]);
-    Eigen::Vector4f extendedLeftFace(hammer->leftFace.x(), hammer->leftFace.y(), hammer->leftFace.z(), 1);
-    extendedLeftFace = hammer->currT * extendedLeftFace;
-    std::cout << "hammer's leftFace: \n" << extendedLeftFace << "\n\n";
-    
-    checkForHit();
-}
-
 void resetGame(){
     for(int i = 0; i < 6; i++) {
         ((Block*)(meshObjects[i]))->reset();
@@ -333,7 +262,6 @@ void resetGame(){
 int shift_on = 0;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    // Update the position of the first vertex if the keys 1,2, or 3 are pressed
     switch (key)
     {
         case GLFW_KEY_LEFT_SHIFT:
@@ -365,28 +293,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         default:
             break;
     }
-
-    // Upload the change to the GPU
-    //VBO.update(V);
-}
-
-double lastx;
-double lasty;
-void hit() {
-    // Get the position of the mouse in the window
-    double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
-    
-    // Get the size of the window
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    
-    //compute scene position
-    // Convert screen position to world coordinates
-    double xworld = ((xpos/double(width))*2)-1;
-    double yworld = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
-    
-    std::cout << "mouse at: " << xworld << ", " << yworld << "\n";
 }
 
 void initPhysicalLaws(double staticFriction = 0.4, double leniency = 1, double mass = 0.035) {
@@ -459,21 +365,6 @@ int main(void)
     VAO.init();
     VAO.bind();
 
-    // Initialize the VBO with the vertices data
-    // A VBO is a data container that lives in the GPU memory
-    /*VBO.init();
-
-    V.resize(3,4);*/
-    /*V << 0,  0.5, -0.5, 0,
-    0.5, -0.5, -0.5, 0.5,
-    0, 0, 0, 0;*/
-    /*V << 0.5, 0.5, -0.5, -0.5,
-    0.5, -0.5, 0.5, -0.5,
-    0, 0, 0, 0;
-    VBO.update(V);*/
-    
-    
-
     // Initialize the OpenGL Program
     // A program controls the OpenGL pipeline and it must contains
     // at least a vertex shader and a fragment shader to be valid
@@ -494,7 +385,6 @@ int main(void)
                     "    vec4 vec4pos = vec4(position[0],position[1],position[2],1.0);"
                     "    mat4 newM = view * (M * Transformation);"
                     "    vec4 newPos = newM * vec4pos;"
-                    //"    gl_Position = vec4(newPos.xyz, 1.0);"
                     "    gl_Position = vec4(newPos.x, newPos.y + windowShift, newPos.z, 1.0);"
     
                     "    Position = position;"
@@ -537,21 +427,14 @@ int main(void)
 
     // Register the keyboard callback
     glfwSetKeyCallback(window, key_callback);
-
-    // Register the mouse callback
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
     
     //--------------------------------------------------------------------------------------------
     
     glUniform1i(program.uniform("textured"),0);
     
-    //coefficient of clean wood
-    //frictionCoeff = 0.25;
     cheatMode = 0;
     
     viewTrans = new ViewTransformations(0,0.5,4);
-    //viewTrans = new ViewTransformations(1,1,4);
-    //viewTrans = new ViewTransformations(4,0,0);
     viewTrans->setVisibleWorldlbn(-1.5,-1.5,1.5);
     viewTrans->setVisibleWorldrtf(1.5,1.5,-1.5);
     viewTrans->updateView();
@@ -649,29 +532,6 @@ int main(void)
             meshObjects[i]->texIndex = i-5;
         }
     }
-    
-    //for testing adding texture to a specific object
-    /*GLuint textures[1];
-    glGenTextures(1, textures);
-    int width, height; unsigned char* image;
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-    image = SOIL_load_image("../data/darumaotoshi_obj/atama.png", &width, &height, 0, SOIL_LOAD_RGB);
-    //std::cout << "height: " << height << ", width: " << width << "\n";
-    //for(int i = 0; i < height*width; i++){
-    //    std::cout << (int)(image[i]) << " ";
-    //}
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    SOIL_free_image_data(image);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    meshObjects[5]->textured = 1;
-    glUniform1i(program.uniform("tex"), 0);*/
     
     ((Hammer*)meshObjects[6])->initialState(90);
     

@@ -293,7 +293,6 @@ MeshObject::MeshObject(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N,
 
 void MeshObject::transform(Eigen::MatrixXf newT) {
     currT = newT * T;
-    //Eigen::Vector4f fullCenter(center.x(), center.y(), center.z(), 1);
     update_pointer(T_pointer, currT);
 }
 
@@ -407,7 +406,6 @@ Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::Ma
         if(yToCheck < yMinBound)
             yMinBound = yToCheck;
     }
-    std::cout << "yMaxBound: " << yMaxBound << ", yMinBound: " << yMinBound << "\n";
     
     origyMinBound = yMinBound;
     origyMaxBound = yMaxBound;
@@ -416,8 +414,7 @@ Block::Block(Eigen::MatrixXf V, Eigen::MatrixXf TC, Eigen::MatrixXf N, Eigen::Ma
 }
 
 void Block::hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vector3f hammerFace, double currAccel, int cheatMode) {
-    std::cout << "hit acceleration: " << currAccel << "\n";
-    std::cout << "state: " << state << "\n";
+    std::cout << "hit acceleration: " << std::abs(currAccel) << "\n";
     if(cheatMode)
         currAccel = minTargetAccel;
     if(state == "base" || (state == "slide" && velocity == 0)){
@@ -425,25 +422,21 @@ void Block::hit(std::deque<double> cursorXVelocities, double cursorX, Eigen::Vec
         if(std::abs(currAccel) < minTargetAccel || std::abs(secondToLastVelocity) < std::abs(cursorXVelocities.back())) {
             if(std::abs(cursorX-xMaxBound) < std::abs(cursorX-xMinBound)){
                 currT(0,3) = hammerFace.x() - xMaxBound;
-                std::cout << "pushing left\n";
             }
             else{
                 currT(0,3) = hammerFace.x() - xMinBound;
-                std::cout << "pushing right\n";
             }
             state = "push_base";
-            std::cout << "\n\n\nLESS THAN TARGET ACCEL ZONE\n\n\n";
+            std::cout << "\tLESS THAN TARGET ACCEL ZONE\n";
         }
         else if(std::abs(currAccel) >= minTargetAccel && std::abs(currAccel) <= maxTargetAccel){
             if(std::abs(cursorXVelocities.back()) > std::abs(velocity))
-                //velocity = cursorXVelocities.back();
                 velocity = secondToLastVelocity;
             state = "slide";
-            std::cout << "\n\n\nIN TARGET ACCEL ZONE\n\n\n";
+            std::cout << "\tIN TARGET ACCEL ZONE\n";
         }
         else {
-            //state = "fall";
-            std::cout << "BOO, YOU LOST\n";
+            std::cout << "\n\nYOU LOST :(\n\n";
             state = "boo";
         }
     }
@@ -483,7 +476,6 @@ void Block::updatePos() {
     }
     
     else if(state == "restack"){
-        std::cout << "restacked!\n";
         state = "static";
         velocity = 0;
         
@@ -492,7 +484,6 @@ void Block::updatePos() {
     }
     
     else if(state == "fall"){
-        std::cout << "FALLING(FORYOU HAHA GET IT)\n";
         float interval = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_last_update).count();
         //divided gravity by half for visibility purposes
         velocity = (interval * GRAVITATIONALACCEL * -0.2)/METERSPERWORLDUNITS + velocity;
@@ -506,7 +497,6 @@ void Block::updatePos() {
             double height = yMaxBound - yMinBound;
             yMinBound = 0.0015;
             yMaxBound = yMinBound + height;
-            std::cout << "BASED.\n";
             
             if(above != nullptr)
                 above->state = "restack";
@@ -516,7 +506,6 @@ void Block::updatePos() {
             
             if(above != nullptr){
                 above->state = "fall";
-                //std::cout << "THE REST, FALL PLS\n";
             }
         }
     }
