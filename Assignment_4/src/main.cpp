@@ -345,8 +345,7 @@ int main(void)
 #endif
 
     // Create a windowed mode window and its OpenGL context
-    //window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    window = glfwCreateWindow(800, 600, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(800, 600, "Daruma Otoshi Game", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
