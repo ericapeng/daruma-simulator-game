@@ -1,6 +1,6 @@
 # The Darumaotoshi Simulator
 
-A virtual simulation of the Japanese children's game, daruma otoshi.
+A virtual simulation of the Japanese children's game, daruma otoshi. My final project for CSCI-GA 2270, NYU's Graduate Computer Graphics course of Fall 2016.
 
 ### Daruma Otoshi
 
@@ -25,6 +25,15 @@ The hammer is controlled by the mouse location. The speed of the moving mouse is
 
 Starting State - blocks are in place and hammer has not yet hit any blocks
 ![start](/actionshots/start.png)
+
+Zoomed State - a way to easily control the velocity of the hammer
+![zoomed](/actionshots/zoomed.png)
+
+Losing State - the top block changes faces when you've hit the bottom block too hard and the remaining blocks have toppled over
+![loss](/actionshots/loss.png)
+
+Winning State - you've worked hard to reach the last block, congrats! :)
+![win](/actionshots/win.png)
 
 ### Computer Graphics Details
 
